@@ -1,7 +1,10 @@
 // noinspection JSUnusedGlobalSymbols
 
-type Color = string;//todo
-type BackgroundColor = string;
+type Color =
+    "black" | "red" | "green" | "yellow" | "blue" | "magenta" | "cyan" | "white" | "blackBright" | "gray" | "grey" | "redBright"
+    | "greenBright" | "yellowBright" | "blueBright" | "magentaBright" | "cyanBright" | "whiteBright" | `#${string}`;
+type BackgroundColor = Color;
+
 type LogOptions = {
     format?: string,
 
