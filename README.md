@@ -29,7 +29,7 @@ printer.log("An original log!");
 printer.tag("pass", "This worked as well!");
 ```
 
-![](https://github.com/OguzhanUmutlu/fancy-printer/screenshots/img.png)
+![](https://raw.githubusercontent.com/OguzhanUmutlu/fancy-printer/main/screenshots/img.png)
 
 ## Creating tags
 
@@ -38,7 +38,7 @@ printer.addTag("test", "HEY!", "", "#bb7373", "#ffff00");
 printer.tag("test", "Hello, world!");
 ```
 
-![](https://github.com/OguzhanUmutlu/fancy-printer/screenshots/img_1.png)
+![](https://raw.githubusercontent.com/OguzhanUmutlu/fancy-printer/main/screenshots/img_1.png)
 
 ## Formatting & Using/adding components
 
@@ -54,7 +54,7 @@ printer.addComponent("random", () => {
 printer.info("Hello, world!");
 ```
 
-![](https://github.com/OguzhanUmutlu/fancy-printer/screenshots/img_2.png)
+![](https://raw.githubusercontent.com/OguzhanUmutlu/fancy-printer/main/screenshots/img_2.png)
 
 ## Making the printer global
 
