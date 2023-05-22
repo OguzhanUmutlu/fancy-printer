@@ -7,7 +7,7 @@ A fancy logger with a lot of customization!
 ## Creating a printer
 
 ```js
-const Printer = require("./index");
+const Printer = require("fancy-printer");
 
 
 const printer = new Printer(options);
@@ -29,7 +29,7 @@ printer.log("An original log!");
 printer.tag("pass", "This worked as well!");
 ```
 
-![](./screenshots/img.png)
+![](https://github.com/OguzhanUmutlu/fancy-printer/screenshots/img.png)
 
 ## Creating tags
 
@@ -38,7 +38,7 @@ printer.addTag("test", "HEY!", "", "#bb7373", "#ffff00");
 printer.tag("test", "Hello, world!");
 ```
 
-![](./screenshots/img_1.png)
+![](https://github.com/OguzhanUmutlu/fancy-printer/screenshots/img_1.png)
 
 ## Formatting & Using/adding components
 
@@ -54,7 +54,7 @@ printer.addComponent("random", () => {
 printer.info("Hello, world!");
 ```
 
-![](./screenshots/img_2.png)
+![](https://github.com/OguzhanUmutlu/fancy-printer/screenshots/img_2.png)
 
 ## Making the printer global
 
