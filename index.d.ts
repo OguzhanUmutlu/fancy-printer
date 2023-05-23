@@ -89,7 +89,7 @@ type PaintOptions = {
 type TagComponent = { text: string, backgroundColor: Color, textColor: Color };
 type TagName = "pass" | "fail" | "error" | "warn" | "info" | "debug" | "notice" | "log" | string;
 
-export default class FancyPrinter {
+declare class FancyPrinter {
     static static: FancyPrinter;
 
     static DEFAULT_options?: LogOptions;
@@ -113,9 +113,17 @@ export default class FancyPrinter {
 
     static background(text: string, color: Color): string;
 
-    static setDefault(got, default_): void;
+    static setDefault(got, default_): FancyPrinter;
 
-    static makeGlobal(console?: boolean): void;
+    static makeGlobal(console?: boolean): FancyPrinter;
+
+    static new(options?: LogOptions): FancyPrinter;
+
+    static create(options?: LogOptions): FancyPrinter;
+
+    new(options?: LogOptions): FancyPrinter;
+
+    create(options?: LogOptions): FancyPrinter;
 
     options: LogOptions;
 
@@ -126,51 +134,54 @@ export default class FancyPrinter {
 
     constructor(options?: LogOptions);
 
-    addComponent(name: string, callback: ComponentFunction): void;
+    addComponent(name: string, callback: ComponentFunction): FancyPrinter;
 
-    removeComponent(name: string): void;
+    removeComponent(name: string): FancyPrinter;
 
     getComponents(): Record<string, ComponentFunction>;
 
     getComponent(name: string): ComponentFunction;
 
-    addTag(key: string, text: string, color: Color, backgroundColor: BackgroundColor, textColor: Color): void;
+    addTag(key: string, text: string, color: Color, backgroundColor: BackgroundColor, textColor: Color): FancyPrinter;
 
-    removeTag(key): void;
+    removeTag(key): FancyPrinter;
 
     getTags(): Record<string, TagComponent>
 
     getTag(key): TagComponent;
 
-    setFormat(format): void;
+    setFormat(format): FancyPrinter;
 
     getFormat(): string;
 
-    setCharacter(character): void;
+    setCharacter(character): FancyPrinter;
 
     getCharacter(): string;
 
-    log(text: string, options?: LogOptions): void;
+    log(text: string, options?: LogOptions): FancyPrinter;
 
-    tag(tag: TagName, text: string, options?: LogOptions): void;
+    tag(tag: TagName, text: string, options?: LogOptions): FancyPrinter;
 
-    pass(text: string, options?: LogOptions): void;
+    pass(text: string, options?: LogOptions): FancyPrinter;
 
-    fail(text: string, options?: LogOptions): void;
+    fail(text: string, options?: LogOptions): FancyPrinter;
 
-    error(text: string, options?: LogOptions): void;
+    error(text: string, options?: LogOptions): FancyPrinter;
 
-    err(text: string, options?: LogOptions): void;
+    err(text: string, options?: LogOptions): FancyPrinter;
 
-    warning(text: string, options?: LogOptions): void;
+    warning(text: string, options?: LogOptions): FancyPrinter;
 
-    warn(text: string, options?: LogOptions): void;
+    warn(text: string, options?: LogOptions): FancyPrinter;
 
-    inform(text: string, options?: LogOptions): void;
+    inform(text: string, options?: LogOptions): FancyPrinter;
 
-    info(text: string, options?: LogOptions): void;
+    info(text: string, options?: LogOptions): FancyPrinter;
 
-    debug(text: string, options?: LogOptions): void;
+    debug(text: string, options?: LogOptions): FancyPrinter;
 
-    notice(text: string, options?: LogOptions): void;
+    notice(text: string, options?: LogOptions): FancyPrinter;
 }
+
+type pkg = FancyPrinter;
+export = pkg;

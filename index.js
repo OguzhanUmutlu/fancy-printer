@@ -9,6 +9,8 @@ if (!supportsBasicColor) console.warn("WARNING: The current terminal doesn't sup
 if (!supportsHexColor) console.warn("WARNING: The current terminal doesn't support hexadecimal colors! Hexadecimal colors will be ignored.");
 
 class Printer {
+    static class = Printer;
+
     static DEFAULT_OPTIONS = {
         format: "$date $time $tag $text",
 
@@ -131,6 +133,22 @@ class Printer {
         global.printer = Printer.static;
     };
 
+    static new(options) {
+        return new Printer(options);
+    };
+
+    static create(options) {
+        return new Printer(options);
+    };
+
+    new(options) {
+        return new Printer(options);
+    };
+
+    create(options) {
+        return new Printer(options);
+    };
+
     chr = "$";
 
     components = {
@@ -189,10 +207,12 @@ class Printer {
 
     addComponent(name, callback) {
         this.components[name] = callback;
+        return this;
     };
 
     removeComponent(name) {
         delete this.components[name];
+        return this;
     };
 
     getComponents() {
@@ -205,10 +225,12 @@ class Printer {
 
     addTag(key, text, color, backgroundColor, textColor = "", textBackgroundColor = "") {
         this.tags[key] = {text, color, backgroundColor, textColor, textBackgroundColor};
+        return this;
     };
 
     removeTag(key) {
         delete this.tags[key];
+        return this;
     };
 
     getTags() {
@@ -221,6 +243,7 @@ class Printer {
 
     setFormat(format) {
         this.options.format = format;
+        return this;
     };
 
     getFormat() {
@@ -229,6 +252,7 @@ class Printer {
 
     setCharacter(character) {
         this.chr = character;
+        return this;
     };
 
     getCharacter() {
@@ -251,6 +275,7 @@ class Printer {
             line = Printer.color(line, options.defaultBackgroundColor);
             console.log(formatted.replaceAll(this.chr + "text", line));
         });
+        return this;
     };
 
     tag(tag, text, options) {
@@ -298,6 +323,4 @@ class Printer {
     };
 }
 
-Printer.static = new Printer();
-
-module.exports = Printer;
+module.exports = Printer.static = new Printer();
