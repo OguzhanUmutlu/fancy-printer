@@ -1,8 +1,29 @@
 // noinspection JSUnusedGlobalSymbols
 
 type Color =
-    "black" | "red" | "green" | "yellow" | "blue" | "magenta" | "cyan" | "white" | "blackBright" | "gray" | "grey" | "redBright"
-    | "greenBright" | "yellowBright" | "blueBright" | "magentaBright" | "cyanBright" | "whiteBright" | `#${string}`;
+    "black"
+    | "red"
+    | "green"
+    | "yellow"
+    | "blue"
+    | "magenta"
+    | "cyan"
+    | "white"
+    | "blackBright"
+    | "gray"
+    | "grey"
+    | "redBright"
+    | "greenBright"
+    | "yellowBright"
+    | "blueBright"
+    | "magentaBright"
+    | "cyanBright"
+    | "whiteBright"
+    | "transparent"
+    | "default"
+    | "none"
+    | ""
+    | `#${string}`;
 type BackgroundColor = Color;
 
 type LogOptions = {
@@ -12,10 +33,19 @@ type LogOptions = {
     defaultBackgroundColor?: Color,
 
     tagColor?: Color,
+    tagBold?: boolean,
+    tagItalic?: boolean,
+    tagUnderline?: boolean,
+    tagStrikethrough?: boolean,
+    tagPadding?: number,
 
     dateColor?: Color,
     dateBackgroundColor?: Color,
     dateBold?: boolean,
+    dateItalic?: boolean,
+    dateUnderline?: boolean,
+    dateStrikethrough?: boolean,
+    datePadding?: number,
     dateOptions?: {
         localeMatcher?: "best fit" | "lookup" | undefined;
         weekday?: "long" | "short" | "narrow" | undefined;
@@ -30,7 +60,21 @@ type LogOptions = {
         formatMatcher?: "best fit" | "basic" | undefined;
         hour12?: boolean | undefined;
         timeZone?: string | undefined;
-    }
+    },
+
+    timeColor?: string,
+    timeBackgroundColor?: Color,
+    timeBold?: boolean,
+    timeItalic?: boolean,
+    timeUnderline?: boolean,
+    timeStrikethrough?: boolean,
+    timePadding?: number,
+    timeDate?: boolean,
+    timeHour?: boolean,
+    timeMinute?: boolean,
+    timeSecond?: boolean,
+    timeMillisecond?: boolean,
+    timeMillisecondLength?: number
 };
 type ComponentFunction = (options?: LogOptions) => any;
 type PaintOptions = {
@@ -100,6 +144,10 @@ export default class FancyPrinter {
     setFormat(format): void;
 
     getFormat(): string;
+
+    setCharacter(character): void;
+
+    getCharacter(): string;
 
     log(text: string, options?: LogOptions): void;
 

@@ -10,16 +10,25 @@ if (!supportsHexColor) console.warn("WARNING: The current terminal doesn't suppo
 
 class Printer {
     static DEFAULT_OPTIONS = {
-        format: "$date $tag $text",
+        format: "$date $time $tag $text",
 
         defaultColor: "",
         defaultBackgroundColor: "",
 
         tagColor: "",
+        tagBold: true,
+        tagItalic: false,
+        tagUnderline: false,
+        tagStrikethrough: false,
+        tagPadding: 2,
 
         dateColor: "",
         dateBackgroundColor: "blueBright",
         dateBold: true,
+        dateItalic: false,
+        dateUnderline: false,
+        dateStrikethrough: false,
+        datePadding: 1,
         dateOptions: {
             localeMatcher: undefined,
             weekday: undefined,
@@ -34,7 +43,21 @@ class Printer {
             formatMatcher: undefined,
             hour12: undefined,
             timeZone: undefined
-        }
+        },
+
+        timeColor: "",
+        timeBackgroundColor: "blue",
+        timeBold: true,
+        timeItalic: false,
+        timeUnderline: false,
+        timeStrikethrough: false,
+        timePadding: 1,
+        timeDate: false,
+        timeHour: true,
+        timeMinute: true,
+        timeSecond: true,
+        timeMillisecond: false,
+        timeMillisecondLength: 3
     };
 
     tags = {
@@ -48,13 +71,14 @@ class Printer {
     };
 
     static paint(text, options) {
+        if (typeof options !== "object" || Array.isArray(options)) options = {};
         Printer.setDefault(options, {
-            color: "", backgroundColor: "", bold: true, italic: false, underline: false, strikethrough: false,
+            color: "", backgroundColor: "", bold: false, italic: false, underline: false, strikethrough: false,
             padding: 0
         });
         if (options.padding > 0) text = " ".repeat(options.padding) + text + " ".repeat(options.padding);
-        if (options.color) text = Printer.color(text, options.color);
-        if (options.backgroundColor) text = Printer.background(text, options.backgroundColor);
+        text = Printer.color(text, options.color);
+        text = Printer.background(text, options.backgroundColor);
         if (options.bold) text = chalk.bold(text);
         if (options.italic) text = chalk.italic(text);
         if (options.underline) text = chalk.underline(text);
@@ -81,9 +105,13 @@ class Printer {
     };
 
     static color = (text, color) => {
-        if (!chalk.supportsColor) return text;
+        if (!chalk.supportsColor || [
+            "default", "bg" + "default",
+            "none", "bg" + "none",
+            "transparent", "bg" + "transparent", ""
+        ].includes(color)) return text;
         const isBg = color[0] === "b" && color[1] === "g";
-        if (color[0] === "#" || (isBg && color[2] === "#")) return chalk[isBg ? "bgHex" : "hex"](color)(text);
+        if (color[0] === "#" || (isBg && color[2] === "#")) return chalk[isBg ? "bgHex" : "hex"](isBg ? color.substring(2) : color)(text);
         return chalk[color](text);
     };
 
@@ -102,18 +130,52 @@ class Printer {
         global.printer = Printer.static;
     };
 
+    chr = "$";
+
     components = {
         date: opts => {
             const date = new Date;
             return Printer.paint(date.toLocaleString("en", opts.dateOptions), {
-                backgroundColor: opts.dateBackgroundColor, color: opts.dateColor, bold: opts.dateBold, padding: 1
+                backgroundColor: opts.dateBackgroundColor, color: opts.dateColor, padding: opts.datePadding,
+                bold: opts.dateBold,
+                italic: opts.dateItalic,
+                underline: opts.dateUnderline,
+                strikethrough: opts.dateStrikethrough
             });
         },
         tag: opts => {
             const tag = this.tags[(opts.tag || "").toLowerCase()] || this.tags.log;
             opts.defaultColor = opts.defaultColor || tag.textColor;
             return Printer.paint(tag.text, {
-                color: tag.color || opts.tagColor, backgroundColor: tag.backgroundColor, padding: 2
+                color: tag.color || opts.tagColor, backgroundColor: tag.backgroundColor, padding: opts.tagPadding,
+                bold: opts.tagBold,
+                italic: opts.tagItalic,
+                underline: opts.tagUnderline,
+                strikethrough: opts.tagStrikethrough
+            });
+        },
+        time: opts => {
+            const date = new Date;
+            const l = [
+                ["Date", "getDate"],
+                ["Hour", "getDate"],
+                ["Minute", "getMinutes"],
+                ["Second", "getSeconds"],
+                ["Millisecond", "getMilliseconds", opts.timeMillisecondLength],
+            ];
+            let text = "";
+            for (let i = 0; i < l.length; i++) {
+                const k = l[i];
+                if (opts["time" + k[0]])
+                    text += date[k[1]]().toString().padStart(k[2] || 2, "0").substring(0, k[2] || 2) + (k === "Second" ? "." : ":");
+            }
+            text = text.substring(0, text.length - 1);
+            return Printer.paint(text, {
+                backgroundColor: opts.timeBackgroundColor, color: opts.timeColor, padding: opts.timePadding,
+                bold: opts.timeBold,
+                italic: opts.timeItalic,
+                underline: opts.timeUnderline,
+                strikethrough: opts.timeStrikethrough
             });
         }
     };
@@ -164,20 +226,29 @@ class Printer {
         return this.options.format;
     };
 
+    setCharacter(character) {
+        this.chr = character;
+    };
+
+    getCharacter() {
+        return this.chr;
+    };
+
     log(text, options) {
         options = {...this.options, ...options};
         const lines = Printer.stringify(text).split("\n");
         let comp = {};
-        const formatted = options.format.replaceAll(/\$\w+/g, s => {
+        const reg = `\\${this.chr}[^ \\${this.chr}]+`;
+        const formatted = options.format.replaceAll(new RegExp(reg, "g"), s => {
             s = s.substring(1);
-            if (!this.components[s]) return "$" + s;
+            if (!this.components[s]) return this.chr + s;
             s = comp[s] || this.components[s](options);
             return Printer.stringify(s);
         });
         lines.forEach(line => {
-            if (options.defaultColor) line = Printer.color(line, options.defaultColor);
-            if (options.defaultBackgroundColor) line = Printer.color(line, options.defaultBackgroundColor);
-            console.log(formatted.replaceAll("$text", line));
+            line = Printer.color(line, options.defaultColor);
+            line = Printer.color(line, options.defaultBackgroundColor);
+            console.log(formatted.replaceAll(this.chr + "text", line));
         });
     };
 
