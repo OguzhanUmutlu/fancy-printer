@@ -7,12 +7,13 @@ A fancy logger with a lot of customization!
 ## Creating a printer
 
 ```js
-const Printer = require("fancy-printer");
+const printer = require("fancy-printer");
 
 
-const printer = new Printer(options);
-// OR
-const printer = Printer.static;
+const newPrinter = printer.create(options);
+newPrinter.log("Hello, world!");
+// OR just use it normally
+printer.log("Hello, world!");
 ```
 
 ## Default tags
