@@ -66,8 +66,9 @@ class Printer {
         error: {text: "ERR!", backgroundColor: "red", textColor: "red"},
         warn: {text: "WARN", backgroundColor: "greenBright", textColor: "green"},
         info: {text: "INFO", backgroundColor: "blueBright", textColor: "blue"},
-        debug: {text: "DBG~", backgroundColor: "gray", textColor: "gray"},
-        log: {text: "LOG~", backgroundColor: "gray", textColor: "white"},
+        debug: {text: "DEBUG", backgroundColor: "gray", textColor: "gray"},
+        notice: {text: "NOTICE", backgroundColor: "magentaBright", textColor: "magentaBright"},
+        log: {text: "LOG", backgroundColor: "gray", textColor: "white"}
     };
 
     static paint(text, options) {
@@ -290,6 +291,10 @@ class Printer {
 
     debug(text, options) {
         return this.tag("debug", text, options);
+    };
+
+    notice(text, options) {
+        return this.tag("notice", text, options);
     };
 }
 

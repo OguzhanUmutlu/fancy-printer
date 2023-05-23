@@ -87,7 +87,7 @@ type PaintOptions = {
     padding?: number
 };
 type TagComponent = { text: string, backgroundColor: Color, textColor: Color };
-type TagName = "pass" | "fail" | "error" | "warn" | "info" | "debug" | "log" | string;
+type TagName = "pass" | "fail" | "error" | "warn" | "info" | "debug" | "notice" | "log" | string;
 
 export default class FancyPrinter {
     static static: FancyPrinter;
@@ -100,8 +100,9 @@ export default class FancyPrinter {
         error: { text: "ERR!", backgroundColor: "red", textColor: "red" },
         warn: { text: "WARN", backgroundColor: "greenBright", textColor: "green" },
         info: { text: "INFO", backgroundColor: "blueBright", textColor: "blue" },
-        debug: { text: "DBG~", backgroundColor: "gray", textColor: "gray" },
-        log: { text: "LOG~", backgroundColor: "gray", textColor: "white" },
+        debug: { text: "DEBUG", backgroundColor: "gray", textColor: "gray" },
+        notice: { text: "NOTICE", backgroundColor: "purpleBright", textColor: "purple" },
+        log: { text: "LOG", backgroundColor: "gray", textColor: "white" }
     };
 
     static paint(text: string, options?: PaintOptions): string;
@@ -170,4 +171,6 @@ export default class FancyPrinter {
     info(text: string, options?: LogOptions): void;
 
     debug(text: string, options?: LogOptions): void;
+
+    notice(text: string, options?: LogOptions): void;
 }
