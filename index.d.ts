@@ -101,7 +101,7 @@ declare class FancyPrinter {
     static static: FancyPrinter;
     static DEFAULT_options?: LogOptions;
     stdout: tty.WriteStream & { fd: 1 };
-    class: typeof FancyPrinter;
+    Printer: typeof FancyPrinter;
     tags: Record<string, TagComponent> | {
         pass: { text: "PASS", backgroundColor: "greenBright", textColor: "green" },
         fail: { text: "FAIL", backgroundColor: "redBright", textColor: "redBright" },
