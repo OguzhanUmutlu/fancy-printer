@@ -1,6 +1,6 @@
-const printer = require("./index");
+const P = require("./index");
 
-printer.makeLoggerFile();
+P.makeLoggerFile();
 
-printer.info("hello!");
-printer.info("hello!");
+P.info("hello!");
+P.info("hello!");

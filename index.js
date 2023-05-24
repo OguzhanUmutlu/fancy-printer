@@ -361,6 +361,10 @@ class Printer {
     notice(text, options) {
         return this.tag("notice", text, options);
     };
+
+    clear() {
+        if (this.stdout && this.stdout.isTTY) this.stdout.write("\x1B[2J\x1B[3J\x1B[H");
+    };
 }
 
 module.exports = Printer.static = new Printer();
