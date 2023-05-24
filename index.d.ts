@@ -118,6 +118,8 @@ declare class FancyPrinter {
 
     static makeGlobal(console?: boolean): FancyPrinter;
 
+    makeGlobal(console?: boolean): FancyPrinter;
+
     static new(options?: LogOptions): FancyPrinter;
 
     static create(options?: LogOptions): FancyPrinter;
