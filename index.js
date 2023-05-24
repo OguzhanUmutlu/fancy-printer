@@ -1,12 +1,13 @@
 // noinspection JSUnusedGlobalSymbols,JSUnusedLocalSymbols
 
 const chalk = require("chalk");
+const {stdout} = process;
 
 const supportsBasicColor = chalk.supportsColor.hasBasic;
 const supportsHexColor = chalk.supportsColor.has256;
 
-if (!supportsBasicColor) console.warn("WARNING: The current terminal doesn't support basic colors! Basic colors will be ignored.");
-if (!supportsHexColor) console.warn("WARNING: The current terminal doesn't support hexadecimal colors! Hexadecimal colors will be ignored.");
+if (!supportsBasicColor) stdout.write("WARNING: The current terminal doesn't support basic colors! Basic colors will be ignored.\n");
+if (!supportsHexColor) stdout.write("WARNING: The current terminal doesn't support hexadecimal colors! Hexadecimal colors will be ignored.\n");
 
 class Printer {
     class = Printer;
@@ -279,7 +280,7 @@ class Printer {
         lines.forEach(line => {
             line = Printer.color(line, options.defaultColor);
             line = Printer.color(line, options.defaultBackgroundColor);
-            console.log(formatted.replaceAll(this.chr + "text", line));
+            stdout.write(formatted.replaceAll(this.chr + "text", line) + "\n");
         });
         return this;
     };
