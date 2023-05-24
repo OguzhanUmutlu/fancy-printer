@@ -76,7 +76,10 @@ type LogOptions = {
     timeMillisecond?: boolean,
     timeMillisecondLength?: number
 };
-type ComponentFunction = (options?: LogOptions) => any;
+type ComponentFunction = (options?: LogOptions) => {
+    result: any,
+    plain: any
+} | string | number;
 type PaintOptions = {
     color?: Color,
     backgroundColor?: Color,
@@ -90,11 +93,9 @@ type TagComponent = { text: string, backgroundColor: Color, textColor: Color };
 type TagName = "pass" | "fail" | "error" | "warn" | "info" | "debug" | "notice" | "log" | string;
 
 declare class FancyPrinter {
-    class: typeof FancyPrinter;
     static static: FancyPrinter;
-
     static DEFAULT_options?: LogOptions;
-
+    class: typeof FancyPrinter;
     tags: Record<string, TagComponent> | {
         pass: { text: "PASS", backgroundColor: "greenBright", textColor: "green" },
         fail: { text: "FAIL", backgroundColor: "redBright", textColor: "redBright" },
@@ -105,6 +106,13 @@ declare class FancyPrinter {
         notice: { text: "NOTICE", backgroundColor: "purpleBright", textColor: "purple" },
         log: { text: "LOG", backgroundColor: "gray", textColor: "white" }
     };
+    options: LogOptions;
+    components: Record<string, ComponentFunction> | {
+        date: ComponentFunction,
+        tag: ComponentFunction
+    };
+
+    constructor(options?: LogOptions);
 
     static paint(text: string, options?: PaintOptions): string;
 
@@ -118,24 +126,21 @@ declare class FancyPrinter {
 
     static makeGlobal(console?: boolean): FancyPrinter;
 
-    makeGlobal(console?: boolean): FancyPrinter;
-
     static new(options?: LogOptions): FancyPrinter;
 
     static create(options?: LogOptions): FancyPrinter;
+
+    makeGlobal(console?: boolean): FancyPrinter;
 
     new(options?: LogOptions): FancyPrinter;
 
     create(options?: LogOptions): FancyPrinter;
 
-    options: LogOptions;
+    addStream(stream: WritableStream): FancyPrinter;
 
-    components: Record<string, ComponentFunction> | {
-        date: ComponentFunction,
-        tag: ComponentFunction
-    };
+    removeStream(stream: WritableStream): FancyPrinter;
 
-    constructor(options?: LogOptions);
+    writeOutToFile(file: string): WritableStream;
 
     addComponent(name: string, callback: ComponentFunction): FancyPrinter;
 
@@ -147,17 +152,17 @@ declare class FancyPrinter {
 
     addTag(key: string, text: string, color: Color, backgroundColor: BackgroundColor, textColor: Color): FancyPrinter;
 
-    removeTag(key): FancyPrinter;
+    removeTag(key: string): FancyPrinter;
 
     getTags(): Record<string, TagComponent>
 
-    getTag(key): TagComponent;
+    getTag(key: string): TagComponent;
 
-    setFormat(format): FancyPrinter;
+    setFormat(format: string): FancyPrinter;
 
     getFormat(): string;
 
-    setCharacter(character): FancyPrinter;
+    setCharacter(character: string): FancyPrinter;
 
     getCharacter(): string;
 
