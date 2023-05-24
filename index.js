@@ -63,7 +63,7 @@ class Printer {
         timeMillisecondLength: 3
     };
     stdout = stdout;
-    class = Printer;
+    Printer = Printer;
     tags = {
         pass: {text: "PASS", backgroundColor: "greenBright", textColor: "green"},
         fail: {text: "FAIL", backgroundColor: "redBright", textColor: "redBright"},
