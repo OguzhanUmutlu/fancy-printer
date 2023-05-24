@@ -2,6 +2,7 @@
 
 const chalk = require("chalk");
 const fs = require("fs");
+const path = require("path");
 const {stdout} = process;
 
 const supportsBasicColor = chalk.supportsColor.hasBasic;
@@ -61,6 +62,7 @@ class Printer {
         timeMillisecond: false,
         timeMillisecondLength: 3
     };
+    stdout = stdout;
     class = Printer;
     tags = {
         pass: {text: "PASS", backgroundColor: "greenBright", textColor: "green"},
@@ -72,7 +74,7 @@ class Printer {
         notice: {text: "NOTICE", backgroundColor: "magentaBright", textColor: "magentaBright"},
         log: {text: "LOG", backgroundColor: "gray", textColor: "white"}
     };
-    streams = new Set;
+    streams = new Map;
     chr = "$";
     components = {
         date: opts => {
@@ -130,22 +132,6 @@ class Printer {
         if (typeof options !== "object" || Array.isArray(options)) options = {};
         Printer.setDefault(options, Printer.DEFAULT_OPTIONS);
         this.options = options;
-    };
-
-    addStream(stream) {
-        this.streams.add(stream);
-        return this;
-    };
-
-    removeStream(stream) {
-        this.streams.delete(stream);
-        return this;
-    };
-
-    writeOutToFile(file) {
-        const stream = fs.createWriteStream(file);
-        this.addStream(stream);
-        return stream;
     };
 
     static paint(text, options) {
@@ -214,6 +200,27 @@ class Printer {
 
     static create(options) {
         return new Printer(options);
+    };
+
+    addFile(file) {
+        this.streams.set(file, fs.createWriteStream(file));
+        return this;
+    };
+
+    removeFile(file) {
+        this.streams.delete(file);
+        return this;
+    };
+
+    makeLoggerFile(options) {
+        if (typeof options !== "object" || Array.isArray(options)) options = {};
+        Printer.setDefault(options, {
+            folder: "./logs", radix: 32, divide: 1, format: "log-$t.log"
+        });
+        if (!fs.existsSync(options.folder)) fs.mkdirSync(options.folder);
+        const file = path.join(options.folder, options.format.replaceAll("$t", Math.floor(Date.now() / options.divide).toString(options.radix)));
+        this.addFile(file);
+        return this;
     };
 
     makeGlobal(_console = false) {
@@ -305,7 +312,7 @@ class Printer {
             const l = line;
             line = Printer.color(line, options.defaultColor);
             line = Printer.color(line, options.defaultBackgroundColor);
-            stdout.write(colored.replaceAll(this.chr + "text", line) + "\n");
+            if (this.stdout) this.stdout.write(colored.replaceAll(this.chr + "text", line) + "\n");
             this.streams.forEach(stream => stream.write(plain.replaceAll(this.chr + "text", l) + "\n"));
         });
         return this;

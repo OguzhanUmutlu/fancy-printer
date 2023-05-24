@@ -1,5 +1,7 @@
 // noinspection JSUnusedGlobalSymbols
 
+import * as tty from "node:tty";
+
 type Color =
     "black"
     | "red"
@@ -89,12 +91,16 @@ type PaintOptions = {
     strikethrough?: boolean,
     padding?: number
 };
+type FileOptions = {
+    folder?: string, radix?: number, divide?: number, format?: string
+};
 type TagComponent = { text: string, backgroundColor: Color, textColor: Color };
 type TagName = "pass" | "fail" | "error" | "warn" | "info" | "debug" | "notice" | "log" | string;
 
 declare class FancyPrinter {
     static static: FancyPrinter;
     static DEFAULT_options?: LogOptions;
+    stdout: tty.WriteStream & { fd: 1 };
     class: typeof FancyPrinter;
     tags: Record<string, TagComponent> | {
         pass: { text: "PASS", backgroundColor: "greenBright", textColor: "green" },
@@ -136,11 +142,11 @@ declare class FancyPrinter {
 
     create(options?: LogOptions): FancyPrinter;
 
-    addStream(stream: WritableStream): FancyPrinter;
+    addFile(file: string): FancyPrinter;
 
-    removeStream(stream: WritableStream): FancyPrinter;
+    removeFile(file: string): FancyPrinter;
 
-    writeOutToFile(file: string): WritableStream;
+    makeLoggerFile(options?: FileOptions): FancyPrinter;
 
     addComponent(name: string, callback: ComponentFunction): FancyPrinter;
 

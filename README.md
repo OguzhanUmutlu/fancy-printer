@@ -87,6 +87,23 @@ Tip: You can add custom options to nearly every function!
 printer.info("Text!", additionalOptions);
 ```
 
+## Logging to a file
+
+```js
+printer.addFile("./myFile.txt");
+
+// OR you can use this:
+printer.makeLoggerFile();
+// which makes a "logs" folder and puts a unique file in it to log into
+// OPTIONAL:
+printer.makeLoggerFile({
+    folder: "./myFolder/", // Default: logs. This is where the log files will be saved in.
+    radix: 16, // max and default 32. This is the time encoder setting
+    divide: 3, // Default: 1. Divides the current timestamp into 10^divide. For example 3 would divide it to 1000 which makes it depend on seconds.
+    format: "my file $t.log" // Default: log-$t.log. The format of the name of the file. $t will be replaced by the time
+});
+```
+
 | Key                       | Default                | Expected                                                                                           | Description                                                                                                                         |
 |---------------------------|------------------------|----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
 | format                    | $date $time $tag $text | string                                                                                             | The formatting                                                                                                                      |
