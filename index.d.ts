@@ -122,9 +122,9 @@ declare class FancyPrinter {
 
     static background(text: string, color: Color): string;
 
-    static setDefault(got, default_): FancyPrinter;
+    static setDefault(got, default_): void;
 
-    static makeGlobal(console?: boolean): FancyPrinter;
+    static makeGlobal(console?: boolean): void;
 
     static new(options?: LogOptions): FancyPrinter;
 
