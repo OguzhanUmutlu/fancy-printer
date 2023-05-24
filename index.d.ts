@@ -90,6 +90,7 @@ type TagComponent = { text: string, backgroundColor: Color, textColor: Color };
 type TagName = "pass" | "fail" | "error" | "warn" | "info" | "debug" | "notice" | "log" | string;
 
 declare class FancyPrinter {
+    class: typeof FancyPrinter;
     static static: FancyPrinter;
 
     static DEFAULT_options?: LogOptions;
