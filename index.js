@@ -215,7 +215,7 @@ class Printer {
     makeLoggerFile(options) {
         if (typeof options !== "object" || Array.isArray(options)) options = {};
         Printer.setDefault(options, {
-            folder: "./logs", radix: 32, divide: 1, format: "log-$t.log"
+            folder: "./logs", radix: 16, divide: 3, format: "log-$t.log"
         });
         if (!fs.existsSync(options.folder)) fs.mkdirSync(options.folder);
         const file = path.join(options.folder, options.format.replaceAll("$t", Math.floor(Date.now() / (10 ** options.divide)).toString(options.radix)));
