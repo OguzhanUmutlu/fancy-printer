@@ -220,6 +220,7 @@ class Printer {
         if (_console) global.console = Printer.static;
         global.Printer = Printer;
         global.printer = Printer.static;
+        return this;
     };
 
     new(options) {
