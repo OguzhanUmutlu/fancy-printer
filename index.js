@@ -9,7 +9,7 @@ if (!supportsBasicColor) console.warn("WARNING: The current terminal doesn't sup
 if (!supportsHexColor) console.warn("WARNING: The current terminal doesn't support hexadecimal colors! Hexadecimal colors will be ignored.");
 
 class Printer {
-    static class = Printer;
+    class = Printer;
 
     static DEFAULT_OPTIONS = {
         format: "$date $time $tag $text",
@@ -128,6 +128,12 @@ class Printer {
     };
 
     static makeGlobal(_console = false) {
+        if (_console) global.console = Printer.static;
+        global.Printer = Printer;
+        global.printer = Printer.static;
+    };
+
+    makeGlobal(_console = false) {
         if (_console) global.console = Printer.static;
         global.Printer = Printer;
         global.printer = Printer.static;
