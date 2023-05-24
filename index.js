@@ -218,7 +218,7 @@ class Printer {
             folder: "./logs", radix: 32, divide: 1, format: "log-$t.log"
         });
         if (!fs.existsSync(options.folder)) fs.mkdirSync(options.folder);
-        const file = path.join(options.folder, options.format.replaceAll("$t", Math.floor(Date.now() / options.divide).toString(options.radix)));
+        const file = path.join(options.folder, options.format.replaceAll("$t", Math.floor(Date.now() / (10 ** options.divide)).toString(options.radix)));
         this.addFile(file);
         return this;
     };
