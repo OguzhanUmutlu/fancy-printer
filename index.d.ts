@@ -195,6 +195,14 @@ declare class FancyPrinter {
     debug(text: string, options?: LogOptions): FancyPrinter;
 
     notice(text: string, options?: LogOptions): FancyPrinter;
+
+    clear(): FancyPrinter;
+}
+
+declare global {
+    const printer: FancyPrinter;
+    // @ts-ignore
+    const console: FancyPrinter;
 }
 
 type pkg = FancyPrinter;
