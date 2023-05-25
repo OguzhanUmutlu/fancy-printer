@@ -11,6 +11,8 @@ const supportsHexColor = chalk.supportsColor.has256;
 if (!supportsBasicColor) stdout.write("WARNING: The current terminal doesn't support basic colors! Basic colors will be ignored.\n");
 if (!supportsHexColor) stdout.write("WARNING: The current terminal doesn't support hexadecimal colors! Hexadecimal colors will be ignored.\n");
 
+const fnCheck = (s, ...args) => typeof s === "function" ? s(...args) : s;
+
 class Printer {
     static DEFAULT_OPTIONS = {
         format: "$date $time $tag $text",
@@ -92,18 +94,19 @@ class Printer {
                 }), plain: rs
             };
         }, tag: opts => {
-            const tag = this.tags[(opts.tag || "").toLowerCase()] || this.tags.log;
+            const tag = this.tags[opts.tag || ""] || this.tags[(opts.tag || "").toLowerCase()] || this.tags.log;
             opts.defaultColor = opts.defaultColor || tag.textColor;
+            const txt = typeof tag.text === "function" ? tag.text() : tag.text;
             return {
-                result: Printer.paint(tag.text, {
-                    color: tag.color || opts.tagColor,
-                    backgroundColor: tag.backgroundColor,
+                result: Printer.paint(txt, {
+                    color: tag(tag.color) || opts.tagColor,
+                    backgroundColor: fnCheck(tag.backgroundColor),
                     padding: opts.tagPadding,
                     bold: opts.tagBold,
                     italic: opts.tagItalic,
                     underline: opts.tagUnderline,
                     strikethrough: opts.tagStrikethrough
-                }), plain: tag.text
+                }), plain: txt
             };
         }, time: opts => {
             const date = new Date;
@@ -111,7 +114,7 @@ class Printer {
             let text = "";
             for (let i = 0; i < l.length; i++) {
                 const k = l[i];
-                if (opts["time" + k[0]]) text += date[k[1]]().toString().padStart(k[2] || 2, "0").substring(0, k[2] || 2) + (k === "Second" ? "." : ":");
+                if (opts["time" + k[0]]) text += date[k[1]]().toString().padStart(k[2] || 2, "0").substring(0, k[2] || 2) + (k[0] === "Second" ? "." : ":");
             }
             text = text.substring(0, text.length - 1);
             return {
@@ -191,6 +194,7 @@ class Printer {
     static makeGlobal(_console = false) {
         if (_console) global.console = Printer.static;
         global.Printer = Printer;
+        // noinspection JSValidateTypes
         global.printer = Printer.static;
     };
 
@@ -226,6 +230,7 @@ class Printer {
     makeGlobal(_console = false) {
         if (_console) global.console = Printer.static;
         global.Printer = Printer;
+        // noinspection JSValidateTypes
         global.printer = Printer.static;
         return this;
     };
