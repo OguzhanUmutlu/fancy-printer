@@ -94,7 +94,12 @@ type PaintOptions = {
 type FileOptions = {
     folder?: string, radix?: number, divide?: number, format?: string
 };
-type TagComponent = { text: string, backgroundColor: Color, textColor: Color };
+type TagComponent = {
+    text: string | (() => string),
+    color: Color | (() => Color),
+    backgroundColor: Color | (() => Color),
+    textColor: Color | (() => Color)
+};
 type TagName = "pass" | "fail" | "error" | "warn" | "info" | "debug" | "notice" | "log" | string;
 
 declare class FancyPrinter {
@@ -200,9 +205,9 @@ declare class FancyPrinter {
 }
 
 declare global {
-    const printer: FancyPrinter;
+    let printer: FancyPrinter;
     // @ts-ignore
-    const console: FancyPrinter;
+    let console: FancyPrinter;
 }
 
 type pkg = FancyPrinter;

@@ -1,6 +1,3 @@
-const P = require("./index");
+require("./index").makeGlobal(true);
 
-P.makeLoggerFile();
-
-P.info("hello!");
-P.info("hello!");
+console.pass("Hello, world!");
