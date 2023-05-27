@@ -1,6 +1,6 @@
 {
   "name": "fancy-printer",
-  "version": "1.0.18",
+  "version": "1.0.19",
   "description": "A fancy logger with a lot of customization!",
   "main": "index.js",
   "scripts": {

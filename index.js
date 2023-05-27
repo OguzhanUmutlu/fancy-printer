@@ -99,7 +99,7 @@ class Printer {
             const txt = typeof tag.text === "function" ? tag.text() : tag.text;
             return {
                 result: Printer.paint(txt, {
-                    color: tag(tag.color) || opts.tagColor,
+                    color: fnCheck(tag.color) || opts.tagColor,
                     backgroundColor: fnCheck(tag.backgroundColor),
                     padding: opts.tagPadding,
                     bold: opts.tagBold,
