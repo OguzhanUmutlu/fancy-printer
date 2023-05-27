@@ -65,7 +65,7 @@ printer.info("Hello, world!");
 ## ✨ Making the printer global ✨
 
 ```js
-Printer.makeGlobal();
+printer.makeGlobal();
 
 // some file.js where printer nor Printer is defined
 printer.info("test");
@@ -73,7 +73,7 @@ Printer.static.info("test");
 ```
 
 ```js
-Printer.makeGlobal(true);
+printer.makeGlobal(true);
 
 // Now you can use the static printer from `console`
 console.info("test");
