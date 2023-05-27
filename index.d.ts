@@ -78,10 +78,10 @@ type LogOptions = {
     timeMillisecond?: boolean,
     timeMillisecondLength?: number
 };
-type ComponentFunction = (options?: LogOptions) => {
+type ComponentFunction = (options?: LogOptions) => ({
     result: any,
     plain: any
-} | string | number;
+} | string | number);
 type PaintOptions = {
     color?: Color,
     backgroundColor?: Color,
