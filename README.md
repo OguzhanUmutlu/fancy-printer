@@ -79,12 +79,15 @@ printer.makeGlobal(true);
 console.info("test");
 ```
 
-## ✨ Logging to a file *periodically* ✨
+## ✨ Logging to a specific file ✨
 
 ```js
 printer.addFile("./myFile.txt");
+```
 
-// OR you can use this:
+## ✨ Logging to a file *periodically* ✨
+
+```js
 printer.makeLoggerFile();
 // which makes a "logs" folder and puts a unique file in it to log into
 // OPTIONAL:
@@ -97,9 +100,6 @@ printer.makeLoggerFile({
 ## ✨ Logging to a file with a *hash* ✨
 
 ```js
-printer.addFile("./myFile.txt");
-
-// OR you can use this:
 printer.makeHashedLoggerFile();
 // which makes a "logs" folder and puts a unique file in it to log into
 // OPTIONAL:
