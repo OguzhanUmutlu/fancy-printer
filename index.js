@@ -14,6 +14,7 @@ if (!supportsHexColor) stdout.write("WARNING: The current terminal doesn't suppo
 const fnCheck = (s, ...args) => typeof s === "function" ? s(...args) : s;
 
 class Printer {
+    _periodicOptions = null;
     static DEFAULT_OPTIONS = {
         format: "$date $time $tag $text",
 
@@ -70,10 +71,10 @@ class Printer {
         pass: {text: "PASS", backgroundColor: "greenBright", textColor: "green"},
         fail: {text: "FAIL", backgroundColor: "redBright", textColor: "redBright"},
         error: {text: "ERR!", backgroundColor: "red", textColor: "red"},
-        warn: {text: "WARN", backgroundColor: "greenBright", textColor: "green"},
+        warn: {text: "WARN", backgroundColor: "yellow", textColor: "yellow"},
         info: {text: "INFO", backgroundColor: "blueBright", textColor: "blue"},
         debug: {text: "DEBUG", backgroundColor: "gray", textColor: "gray"},
-        notice: {text: "NOTICE", backgroundColor: "magentaBright", textColor: "magentaBright"},
+        notice: {text: "NOTICE", backgroundColor: "cyanBright", textColor: "cyan"},
         log: {text: "LOG", backgroundColor: "gray", textColor: "white"}
     };
     streams = new Map;
@@ -207,7 +208,7 @@ class Printer {
     };
 
     addFile(file) {
-        this.streams.set(file, fs.createWriteStream(file));
+        this.streams.set(file, fs.createWriteStream(file, {flags: "a"}));
         return this;
     };
 
@@ -219,10 +220,58 @@ class Printer {
     makeLoggerFile(options) {
         if (typeof options !== "object" || Array.isArray(options)) options = {};
         Printer.setDefault(options, {
-            folder: "./logs", radix: 16, divide: 3, format: "log-$t.log"
+            folder: "./logs", format: "log-" + this.chr + "DD-" + this.chr + "MM-" + this.chr + "YYYY.log"
+        });
+        this._periodicOptions = options;
+        if (this.streams.get("__periodic__")) return;
+        let sl;
+        this.streams.set("__periodic__", sl = {
+            write: content => {
+                const options = this._periodicOptions;
+                if (!fs.existsSync(options.folder)) fs.mkdirSync(options.folder);
+                const d = new Date;
+                const day = d.getDate();
+                const month = d.getMonth() + 1;
+                const year = d.getFullYear();
+                const hours = d.getHours();
+                const minutes = d.getMinutes();
+                const seconds = d.getSeconds();
+                const ms = d.getMilliseconds();
+                const list = [
+                    ["D", day],
+                    ["M", month],
+                    ["Y", year],
+                    ["h", hours],
+                    ["m", minutes],
+                    ["s", seconds],
+                    ["S", ms]
+                ];
+                const formatted = list.reduce((a, b) => a.replaceAll(new RegExp("\\" + this.chr + b[0] + "+", "g"), str => {
+                    const len = str.length - 1;
+                    str = b[1].toString().padStart(len, "0");
+                    if (str.length > len) str = str.substring(str.length - len);
+                    return str;
+                }), options.format);
+                const file = path.join(options.folder, formatted);
+                if (!sl._streams.has(file)) {
+                    if (sl._lastStream) sl._lastStream.close();
+                    sl._streams.set(file, sl._lastStream = fs.createWriteStream(file, {flags: "a"}));
+                }
+                sl._streams.get(file).write(content);
+            },
+            _lastStream: null,
+            _streams: new Map
+        });
+        return this;
+    };
+
+    makeHashedLoggerFile(options) {
+        if (typeof options !== "object" || Array.isArray(options)) options = {};
+        Printer.setDefault(options, {
+            folder: "./logs", radix: 16, divide: 3, format: "log-" + this.chr + "t.log"
         });
         if (!fs.existsSync(options.folder)) fs.mkdirSync(options.folder);
-        const file = path.join(options.folder, options.format.replaceAll("$t", Math.floor(Date.now() / (10 ** options.divide)).toString(options.radix)));
+        const file = path.join(options.folder, options.format.replaceAll(this.chr + "t", Math.floor(Date.now() / (10 ** options.divide)).toString(options.radix)));
         this.addFile(file);
         return this;
     };

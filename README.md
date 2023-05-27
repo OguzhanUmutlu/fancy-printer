@@ -1,10 +1,10 @@
-# fancy-printer
+# 🌟 Fancy Printer 🌟
 
 A fancy logger with a lot of customization!
 
-# Usage
+# 🔧 Usage 🔧
 
-## Creating a printer
+## ✨ Creating a printer ✨
 
 ```js
 const printer = require("fancy-printer");
@@ -16,7 +16,7 @@ newPrinter.log("Hello, world!");
 printer.log("Hello, world!");
 ```
 
-## Default tags
+## ✨ Default tags ✨
 
 ```js
 printer.pass("Passed!");
@@ -33,7 +33,7 @@ printer.tag("pass", "This worked as well!");
 
 ![](https://raw.githubusercontent.com/larvance/fancy-printer/main/screenshots/img.png)
 
-## Creating tags
+## ✨ Creating tags ✨
 
 ```js
 printer.addTag("test", "HEY!", "", "#bb7373", "#ffff00");
@@ -42,7 +42,7 @@ printer.tag("test", "Hello, world!");
 
 ![](https://raw.githubusercontent.com/larvance/fancy-printer/main/screenshots/img_1.png)
 
-## Formatting & Using/adding components & Changing the chr
+## ✨ Formatting & Using/adding components & Changing the chr ✨
 
 ```js
 printer.setFormat("$date $time $tag $text"); // default
@@ -62,7 +62,7 @@ printer.info("Hello, world!");
 
 ![](https://raw.githubusercontent.com/larvance/fancy-printer/main/screenshots/img_2.png)
 
-## Making the printer global
+## ✨ Making the printer global ✨
 
 ```js
 Printer.makeGlobal();
@@ -79,15 +79,7 @@ Printer.makeGlobal(true);
 console.info("test");
 ```
 
-## Logging Options
-
-Tip: You can add custom options to nearly every function!
-
-```js
-printer.info("Text!", additionalOptions);
-```
-
-## Logging to a file
+## ✨ Logging to a file *periodically* ✨
 
 ```js
 printer.addFile("./myFile.txt");
@@ -98,16 +90,56 @@ printer.makeLoggerFile();
 // OPTIONAL:
 printer.makeLoggerFile({
     folder: "./myFolder/", // Default: logs. This is where the log files will be saved in.
-    radix: 16, // max and default 16. This is the time encoder setting
-    divide: 3, // Default: 3. Divides the current timestamp into 10^divide. For example 3 would divide it to 1000 which makes it depend on seconds.
-    format: "my file $t.log" // Default: log-$t.log. The format of the name of the file. $t will be replaced by the time
+    format: "my log $DD-$MM-$YYYY.txt" // Default: log-DD-MM-YYYY.log. The format of the name of the file.
 });
 ```
 
-## Clearing
+## ✨ Logging to a file with a *hash* ✨
+
+```js
+printer.addFile("./myFile.txt");
+
+// OR you can use this:
+printer.makeHashedLoggerFile();
+// which makes a "logs" folder and puts a unique file in it to log into
+// OPTIONAL:
+printer.makeHashedLoggerFile({
+    folder: "./myFolder/", // Default: logs. This is where the log files will be saved in.
+    radix: 16, // max and default 16. This is the time encoder setting
+    divide: 3, // Default: 3. Divides the current timestamp into 10^divide. For example 3 would divide it to 1000 which makes it depend on seconds.
+    format: "my log $t.txt" // Default: log-$t.log. The format of the name of the file. $t will be replaced by the time
+});
+```
+
+### ✨ Formatting arguments ✨
+- **Y:** Year
+- **M:** Month
+- **D**: Day
+- **h**: Hour
+- **m**: Minute
+- **s**: Second
+- **S**: Millisecond
+
+### ✨ Padding on formatting arguments ✨
+
+The length of the argument determines how long it should be.
+
+For example if it's `DD` and if the day is 4, it becomes 04.
+
+If it's `YY` and if the year is 2023, it becomes 23. (so it cuts from the end)
+
+## ✨ Clearing the terminal ✨
 
 ```js
 printer.clear();
+```
+
+## ✨ Logging Options ✨
+
+Tip: You can add custom options to nearly every function!
+
+```js
+printer.info("Text!", additionalOptions);
 ```
 
 | Key                       | Default                | Expected                                                                                           | Description                                                                                                                         |
