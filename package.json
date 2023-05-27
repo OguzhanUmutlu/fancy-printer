@@ -1,6 +1,6 @@
 {
   "name": "fancy-printer",
-  "version": "1.0.19",
+  "version": "1.0.20",
   "description": "A fancy logger with a lot of customization!",
   "main": "index.js",
   "scripts": {
@@ -10,5 +10,8 @@
   "license": "MIT",
   "dependencies": {
     "chalk": "^4.1.2"
+  },
+  "repository": {
+    "url": "https://github.com/OguzhanUmutlu/fancy-printer"
   }
 }
