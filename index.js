@@ -318,7 +318,7 @@ class Printer {
             line = Printer.color(line, options.defaultColor);
             line = Printer.color(line, options.defaultBackgroundColor);
             if (this.stdout) this.stdout.write(colored.replaceAll(this.chr + "text", line) + "\n");
-            this.streams.forEach(stream => stream.write(plain.replaceAll(this.chr + "text", l) + "\n").replaceAll(/\x1B\[\d+m/g, ""));
+            this.streams.forEach(stream => stream.write(plain.replaceAll(this.chr + "text", l).replaceAll(/\x1B\[\d+m/g, "") + "\n"));
         });
         return this;
     };
