@@ -2,30 +2,9 @@
 
 import * as tty from "node:tty";
 
-type Color =
-    "black"
-    | "red"
-    | "green"
-    | "yellow"
-    | "blue"
-    | "magenta"
-    | "cyan"
-    | "white"
-    | "blackBright"
-    | "gray"
-    | "grey"
-    | "redBright"
-    | "greenBright"
-    | "yellowBright"
-    | "blueBright"
-    | "magentaBright"
-    | "cyanBright"
-    | "whiteBright"
-    | "transparent"
-    | "default"
-    | "none"
-    | ""
-    | `#${string}`;
+type Color = "black" | "red" | "green" | "yellow" | "blue" | "magenta" | "cyan" | "white" | "blackBright" | "gray"
+    | "grey" | "redBright" | "greenBright" | "yellowBright" | "blueBright" | "magentaBright" | "cyanBright"
+    | "whiteBright" | "transparent" | "default" | "none" | "" | `#${string}`;
 type BackgroundColor = Color;
 
 type LogOptions = {
@@ -91,8 +70,11 @@ type PaintOptions = {
     strikethrough?: boolean,
     padding?: number
 };
-type FileOptions = {
+type LoggerOptions = {
     folder?: string, radix?: number, divide?: number, format?: string
+};
+type PeriodicLoggerOptions = {
+    folder?: string, format?: string
 };
 type TagComponent = {
     text: string | (() => string),
@@ -111,10 +93,10 @@ declare class FancyPrinter {
         pass: { text: "PASS", backgroundColor: "greenBright", textColor: "green" },
         fail: { text: "FAIL", backgroundColor: "redBright", textColor: "redBright" },
         error: { text: "ERR!", backgroundColor: "red", textColor: "red" },
-        warn: { text: "WARN", backgroundColor: "greenBright", textColor: "green" },
+        warn: { text: "WARN", backgroundColor: "yellow", textColor: "yellow" },
         info: { text: "INFO", backgroundColor: "blueBright", textColor: "blue" },
         debug: { text: "DEBUG", backgroundColor: "gray", textColor: "gray" },
-        notice: { text: "NOTICE", backgroundColor: "purpleBright", textColor: "purple" },
+        notice: { text: "NOTICE", backgroundColor: "cyanBright", textColor: "cyan" },
         log: { text: "LOG", backgroundColor: "gray", textColor: "white" }
     };
     options: LogOptions;
@@ -151,7 +133,9 @@ declare class FancyPrinter {
 
     removeFile(file: string): FancyPrinter;
 
-    makeLoggerFile(options?: FileOptions): FancyPrinter;
+    makeLoggerFile(options?: PeriodicLoggerOptions): FancyPrinter;
+
+    makeHashedLoggerFile(options?: LoggerOptions): FancyPrinter;
 
     addComponent(name: string, callback: ComponentFunction): FancyPrinter;
 
