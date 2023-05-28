@@ -2,6 +2,8 @@
 
 A fancy logger with a lot of customization!
 
+[![](https://img.shields.io/badge/Discord-black?style=for-the-badge&logo=discord)](https://discord.gg/emAhrw3mvM)
+
 # 🔧 Usage 🔧
 
 ## ✨ Creating a printer ✨
