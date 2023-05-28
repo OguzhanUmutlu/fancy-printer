@@ -161,29 +161,29 @@ declare class FancyPrinter {
 
     getCharacter(): string;
 
-    log(text: string, options?: LogOptions): FancyPrinter;
+    log(...any: any[]): FancyPrinter;
 
-    tag(tag: TagName, text: string, options?: LogOptions): FancyPrinter;
+    tag(tag: TagName, ...any: any[]): FancyPrinter;
 
-    pass(text: string, options?: LogOptions): FancyPrinter;
+    pass(...any: any[]): FancyPrinter;
 
-    fail(text: string, options?: LogOptions): FancyPrinter;
+    fail(...any: any[]): FancyPrinter;
 
-    error(text: string, options?: LogOptions): FancyPrinter;
+    error(...any: any[]): FancyPrinter;
 
-    err(text: string, options?: LogOptions): FancyPrinter;
+    err(...any: any[]): FancyPrinter;
 
-    warning(text: string, options?: LogOptions): FancyPrinter;
+    warning(...any: any[]): FancyPrinter;
 
-    warn(text: string, options?: LogOptions): FancyPrinter;
+    warn(...any: any[]): FancyPrinter;
 
-    inform(text: string, options?: LogOptions): FancyPrinter;
+    inform(...any: any[]): FancyPrinter;
 
-    info(text: string, options?: LogOptions): FancyPrinter;
+    info(...any: any[]): FancyPrinter;
 
-    debug(text: string, options?: LogOptions): FancyPrinter;
+    debug(...any: any[]): FancyPrinter;
 
-    notice(text: string, options?: LogOptions): FancyPrinter;
+    notice(...any: any[]): FancyPrinter;
 
     clear(): FancyPrinter;
 }

@@ -346,16 +346,15 @@ class Printer {
         return this.chr;
     };
 
-    log(text, options) {
-        options = {...this.options, ...options};
+    log(...texts) {
         const lines = Printer.stringify(text).split("\n");
         let comp = {};
         const reg = `\\${this.chr}[^ \\${this.chr}]+`;
-        const formatted = options.format.split(new RegExp("(" + reg + ")", "g")).filter(i => i).map(i => {
+        const formatted = this.options.format.split(new RegExp("(" + reg + ")", "g")).filter(i => i).map(i => {
             if (!new RegExp("^" + reg + "$").test(i.toString())) return i;
             i = i.substring(1);
             if (!this.components[i]) return this.chr + i;
-            i = comp[i] || this.components[i](options);
+            i = comp[i] || this.components[i](this.options);
             if (typeof i === "string" || typeof i === "number") return i.toString();
             if (typeof i !== "object") throw new Error("Expected the component to throw string, number or an object, got: " + typeof i);
             return i;
@@ -364,56 +363,60 @@ class Printer {
         const plain = formatted.map(i => typeof i === "string" ? i : i.plain).join("");
         lines.forEach(line => {
             const l = line;
-            line = Printer.color(line, options.defaultColor);
-            line = Printer.color(line, options.defaultBackgroundColor);
+            line = Printer.color(line, this.options.defaultColor);
+            line = Printer.color(line, this.options.defaultBackgroundColor);
             if (this.stdout) this.stdout.write(colored.replaceAll(this.chr + "text", line) + "\n");
             this.streams.forEach(stream => stream.write(plain.replaceAll(this.chr + "text", l).replaceAll(/\x1B\[\d+m/g, "") + "\n"));
         });
         return this;
     };
 
-    tag(tag, text, options) {
-        return this.log(text, {...options, tag});
+    tag(tag, ...texts) {
+        const old = this.options.tag;
+        this.options.tag = tag;
+        this.log(...texts);
+        this.options.tag = old;
+        return this;
     };
 
-    pass(text, options) {
-        return this.tag("pass", text, options);
+    pass(...texts) {
+        return this.tag("pass", ...texts);
     };
 
-    fail(text, options) {
-        return this.tag("fail", text, options);
+    fail(...texts) {
+        return this.tag("fail", ...texts);
     };
 
-    error(text, options) {
-        return this.tag("error", text, options);
+    error(...texts) {
+        return this.tag("error", ...texts);
     };
 
-    err(text, options) {
-        return this.error(text, options);
+    err(...texts) {
+        return this.error(...texts);
     };
 
-    warning(text, options) {
-        return this.warn(text, options);
+    warning(...texts) {
+        return this.warn(...texts);
     };
 
-    warn(text, options) {
-        return this.tag("warn", text, options);
+    warn(...texts) {
+        return this.tag("warn", ...texts);
     };
 
-    inform(text, options) {
-        return this.tag("info", text, options);
+    inform(...texts) {
+        return this.tag("info", ...texts);
     };
 
-    info(text, options) {
-        return this.inform(text, options);
+    info(...texts) {
+        return this.inform(...texts);
     };
 
-    debug(text, options) {
-        return this.tag("debug", text, options);
+    debug(...texts) {
+        return this.tag("debug", ...texts);
     };
 
-    notice(text, options) {
-        return this.tag("notice", text, options);
+    notice(...texts) {
+        return this.tag("notice", ...texts);
     };
 
     clear() {
