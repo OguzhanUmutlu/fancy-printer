@@ -346,16 +346,29 @@ class Printer {
         return this.chr;
     };
 
+    println(text) {
+        if (!this.stdout) return this;
+        this.stdout.write(Printer.stringify(text) + "\n");
+        return this;
+    };
+
+    print(text) {
+        if (!this.stdout) return this;
+        this.stdout.write(Printer.stringify(text));
+        return this;
+    };
+
     log(...texts) {
+        const options = this.options;
         texts.forEach(text => {
             const lines = Printer.stringify(text).split("\n");
             let comp = {};
             const reg = `\\${this.chr}[^ \\${this.chr}]+`;
-            const formatted = this.options.format.split(new RegExp("(" + reg + ")", "g")).filter(i => i).map(i => {
+            const formatted = options.format.split(new RegExp("(" + reg + ")", "g")).filter(i => i).map(i => {
                 if (!new RegExp("^" + reg + "$").test(i.toString())) return i;
                 i = i.substring(1);
                 if (!this.components[i]) return this.chr + i;
-                i = comp[i] || this.components[i](this.options);
+                i = comp[i] || this.components[i](options);
                 if (typeof i === "string" || typeof i === "number") return i.toString();
                 if (typeof i !== "object") throw new Error("Expected the component to throw string, number or an object, got: " + typeof i);
                 return i;
@@ -364,9 +377,9 @@ class Printer {
             const plain = formatted.map(i => typeof i === "string" ? i : i.plain).join("");
             lines.forEach(line => {
                 const l = line;
-                line = Printer.color(line, this.options.defaultColor);
-                line = Printer.color(line, this.options.defaultBackgroundColor);
-                if (this.stdout) this.stdout.write(colored.replaceAll(this.chr + "text", line) + "\n");
+                line = Printer.color(line, options.defaultColor);
+                line = Printer.color(line, options.defaultBackgroundColor);
+                this.println(colored.replaceAll(this.chr + "text", line));
                 this.streams.forEach(stream => stream.write(plain.replaceAll(this.chr + "text", l).replaceAll(/\x1B\[\d+m/g, "") + "\n"));
             });
         });
@@ -375,9 +388,12 @@ class Printer {
 
     tag(tag, ...texts) {
         const old = this.options.tag;
+        const {defaultColor, defaultBackgroundColor} = this.options;
         this.options.tag = tag;
         this.log(...texts);
         this.options.tag = old;
+        this.options.defaultColor = defaultColor;
+        this.options.defaultBackgroundColor = defaultBackgroundColor;
         return this;
     };
 
@@ -422,7 +438,7 @@ class Printer {
     };
 
     clear() {
-        if (this.stdout && this.stdout.isTTY) this.stdout.write("\x1B[2J\x1B[3J\x1B[H");
+        if (this.stdout && this.stdout.isTTY) this.print("\x1B[2J\x1B[3J\x1B[H");
     };
 }
 
