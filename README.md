@@ -99,20 +99,6 @@ printer.makeLoggerFile({
 });
 ```
 
-## ✨ Logging to a file with a *hash* ✨
-
-```js
-printer.makeHashedLoggerFile();
-// which makes a "logs" folder and puts a unique file in it to log into
-// OPTIONAL:
-printer.makeHashedLoggerFile({
-    folder: "./myFolder/", // Default: logs. This is where the log files will be saved in.
-    radix: 16, // max and default 16. This is the time encoder setting
-    divide: 3, // Default: 3. Divides the current timestamp into 10^divide. For example 3 would divide it to 1000 which makes it depend on seconds.
-    format: "my log $t.txt" // Default: log-$t.log. The format of the name of the file. $t will be replaced by the time
-});
-```
-
 ### ✨ Formatting arguments ✨
 - **Y:** Year
 - **M:** Month
@@ -129,6 +115,20 @@ The length of the argument determines how long it should be.
 For example if it's `DD` and if the day is 4, it becomes 04.
 
 If it's `YY` and if the year is 2023, it becomes 23. (so it cuts from the end)
+
+## ✨ Logging to a file with a *hash* ✨
+
+```js
+printer.makeHashedLoggerFile();
+// which makes a "logs" folder and puts a unique file in it to log into
+// OPTIONAL:
+printer.makeHashedLoggerFile({
+    folder: "./myFolder/", // Default: logs. This is where the log files will be saved in.
+    radix: 16, // max and default 16. This is the time encoder setting
+    divide: 3, // Default: 3. Divides the current timestamp into 10^divide. For example 3 would divide it to 1000 which makes it depend on seconds.
+    format: "my log $t.txt" // Default: log-$t.log. The format of the name of the file. $t will be replaced by the time
+});
+```
 
 ## ✨ Clearing the terminal ✨
 
