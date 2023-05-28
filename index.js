@@ -347,26 +347,28 @@ class Printer {
     };
 
     log(...texts) {
-        const lines = Printer.stringify(text).split("\n");
-        let comp = {};
-        const reg = `\\${this.chr}[^ \\${this.chr}]+`;
-        const formatted = this.options.format.split(new RegExp("(" + reg + ")", "g")).filter(i => i).map(i => {
-            if (!new RegExp("^" + reg + "$").test(i.toString())) return i;
-            i = i.substring(1);
-            if (!this.components[i]) return this.chr + i;
-            i = comp[i] || this.components[i](this.options);
-            if (typeof i === "string" || typeof i === "number") return i.toString();
-            if (typeof i !== "object") throw new Error("Expected the component to throw string, number or an object, got: " + typeof i);
-            return i;
-        });
-        const colored = formatted.map(i => typeof i === "string" ? i : i.result).join("");
-        const plain = formatted.map(i => typeof i === "string" ? i : i.plain).join("");
-        lines.forEach(line => {
-            const l = line;
-            line = Printer.color(line, this.options.defaultColor);
-            line = Printer.color(line, this.options.defaultBackgroundColor);
-            if (this.stdout) this.stdout.write(colored.replaceAll(this.chr + "text", line) + "\n");
-            this.streams.forEach(stream => stream.write(plain.replaceAll(this.chr + "text", l).replaceAll(/\x1B\[\d+m/g, "") + "\n"));
+        texts.forEach(text => {
+            const lines = Printer.stringify(text).split("\n");
+            let comp = {};
+            const reg = `\\${this.chr}[^ \\${this.chr}]+`;
+            const formatted = this.options.format.split(new RegExp("(" + reg + ")", "g")).filter(i => i).map(i => {
+                if (!new RegExp("^" + reg + "$").test(i.toString())) return i;
+                i = i.substring(1);
+                if (!this.components[i]) return this.chr + i;
+                i = comp[i] || this.components[i](this.options);
+                if (typeof i === "string" || typeof i === "number") return i.toString();
+                if (typeof i !== "object") throw new Error("Expected the component to throw string, number or an object, got: " + typeof i);
+                return i;
+            });
+            const colored = formatted.map(i => typeof i === "string" ? i : i.result).join("");
+            const plain = formatted.map(i => typeof i === "string" ? i : i.plain).join("");
+            lines.forEach(line => {
+                const l = line;
+                line = Printer.color(line, this.options.defaultColor);
+                line = Printer.color(line, this.options.defaultBackgroundColor);
+                if (this.stdout) this.stdout.write(colored.replaceAll(this.chr + "text", line) + "\n");
+                this.streams.forEach(stream => stream.write(plain.replaceAll(this.chr + "text", l).replaceAll(/\x1B\[\d+m/g, "") + "\n"));
+            });
         });
         return this;
     };
