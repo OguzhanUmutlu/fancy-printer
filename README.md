@@ -29,6 +29,7 @@ printer.info("This is a message!");
 printer.debug("Check the line 5!");
 printer.notice("Attention please!");
 printer.log("An original log!");
+printer.assert(5 % 2 === 0, "5 is not divisible by 2!");
 
 printer.tag("pass", "This worked as well!");
 ```
@@ -59,6 +60,12 @@ printer.info("Hello, world!");
 
 printer.setCharacter("!");
 printer.setFormat("!date !time !tag !2plus2 !text");
+printer.info("Hello, world!");
+
+printer.setCharacter("$");
+printer.setFormat("$file:$row:$column $tag $text");
+// or
+printer.setFormat("$stack $tag $text");
 printer.info("Hello, world!");
 ```
 
@@ -100,6 +107,7 @@ printer.makeLoggerFile({
 ```
 
 ### ✨ Formatting arguments ✨
+
 - **Y:** Year
 - **M:** Month
 - **D**: Day
@@ -130,6 +138,10 @@ printer.makeHashedLoggerFile({
 });
 ```
 
+## ✨ Substitutions ✨
+
+
+
 ## ✨ Clearing the terminal ✨
 
 ```js
@@ -138,10 +150,10 @@ printer.clear();
 
 ## ✨ Logging Options ✨
 
-
-| Key                       | Default                | Expected                                                                                           | Description                                                                                                                         |
+| Key                       | Default                | Expected type                                                                                      | Description                                                                                                                         |
 |---------------------------|------------------------|----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
 | format                    | $date $time $tag $text | string                                                                                             | The formatting                                                                                                                      |
+| substitutions             | true                   | boolean                                                                                            | Whether the substitutions should work                                                                                               |
 | defaultColor              | None                   | Color(string)                                                                                      | The default text color for the printer                                                                                              |
 | defaultBackgroundColor    | None                   | Color(string)                                                                                      | The default text background color for the printer                                                                                   |
 | tagColor                  | None                   | Color(string)                                                                                      | The default text color for the tags                                                                                                 |
@@ -183,3 +195,6 @@ printer.clear();
 | timeSecond                | true                   | boolean                                                                                            | Whether the time component has the seconds in it                                                                                    |
 | timeMillisecond           | false                  | boolean                                                                                            | Whether the time component has the milliseconds in it                                                                               |
 | timeMillisecondLength     | 3                      | number                                                                                             | The maximum length of the millisecond part of the time component                                                                    |
+| groupColor                | None                   | Color(string)                                                                                      | The text color of the group                                                                                                         |
+| groupBackgroundColor      | None                   | Color(string)                                                                                      | The text background color of the group                                                                                              |
+
