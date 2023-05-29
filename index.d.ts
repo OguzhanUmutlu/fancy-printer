@@ -9,6 +9,7 @@ type BackgroundColor = Color;
 
 type LogOptions = {
     format?: string,
+    substitutions?: boolean,
 
     defaultColor?: Color,
     defaultBackgroundColor?: Color,
@@ -55,7 +56,10 @@ type LogOptions = {
     timeMinute?: boolean,
     timeSecond?: boolean,
     timeMillisecond?: boolean,
-    timeMillisecondLength?: number
+    timeMillisecondLength?: number,
+
+    groupColor?: Color,
+    groupBackgroundColor?: Color
 };
 type ComponentFunction = (options?: LogOptions) => ({
     result: any,
@@ -83,6 +87,8 @@ type TagComponent = {
     textColor: Color | (() => Color)
 };
 type TagName = "pass" | "fail" | "error" | "warn" | "info" | "debug" | "notice" | "log" | string;
+type SubstitutionFunction = (text: string, match: string) => string;
+type Substitution = { regex: string | RegExp, run: SubstitutionFunction };
 
 declare class FancyPrinter {
     static static: FancyPrinter;
@@ -97,13 +103,15 @@ declare class FancyPrinter {
         info: { text: "INFO", backgroundColor: "blueBright", textColor: "blue" },
         debug: { text: "DEBUG", backgroundColor: "gray", textColor: "gray" },
         notice: { text: "NOTICE", backgroundColor: "cyanBright", textColor: "cyan" },
-        log: { text: "LOG", backgroundColor: "gray", textColor: "white" }
+        log: { text: "LOG", backgroundColor: "gray", textColor: "white" },
+        assert: {text: "ASSERT", backgroundColor: "white", color: "black", textColor: "gray"}
     };
     options: LogOptions;
     components: Record<string, ComponentFunction> | {
         date: ComponentFunction,
         tag: ComponentFunction
     };
+    substitutions: Substitution[];
 
     constructor(options?: LogOptions);
 
@@ -144,6 +152,12 @@ declare class FancyPrinter {
     getComponents(): Record<string, ComponentFunction>;
 
     getComponent(name: string): ComponentFunction;
+
+    addSubstitution(regex: string | RegExp, callback: SubstitutionFunction): FancyPrinter;
+
+    removeSubstitution(substitution: Substitution): FancyPrinter;
+
+    getSubstitutions(): Substitution[];
 
     addTag(key: string, text: string, color: Color, backgroundColor: BackgroundColor, textColor: Color): FancyPrinter;
 
@@ -186,6 +200,32 @@ declare class FancyPrinter {
     notice(...any: any[]): FancyPrinter;
 
     clear(): FancyPrinter;
+
+    table(object, columns?: string[] | null, tagName?: TagName): FancyPrinter;
+
+    assert(assertion: boolean, ...any: any[]): FancyPrinter;
+
+    time(name?: string): FancyPrinter;
+
+    timeGet(name?: string): number;
+
+    timeLog(name?: string, fixed?: number): FancyPrinter;
+
+    timeEnd(name?: string, fixed?: number): FancyPrinter;
+
+    count(name?: string): FancyPrinter;
+
+    countGet(name?: string): number;
+
+    countReset(name?: string): FancyPrinter;
+
+    group(): FancyPrinter;
+
+    groupEnd(): FancyPrinter;
+
+    getGroup(): number;
+
+    updateOptions(options: LogOptions): FancyPrinter;
 }
 
 declare global {
