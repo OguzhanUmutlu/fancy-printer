@@ -10,6 +10,7 @@ type BackgroundColor = Color;
 type LogOptions = {
     format?: string,
     substitutions?: boolean,
+    newLine?: boolean,
 
     defaultColor?: Color,
     defaultBackgroundColor?: Color,
@@ -89,6 +90,12 @@ type TagComponent = {
 type TagName = "pass" | "fail" | "error" | "warn" | "info" | "debug" | "notice" | "log" | string;
 type SubstitutionFunction = (text: string, match: string) => string;
 type Substitution = { regex: string | RegExp, run: SubstitutionFunction };
+type ReadOptions = {
+    onKey?: (key: string) => void,
+    onBackspace?: () => void,
+    onArrow?: (key: "up" | "down" | "right" | "left", text: string) => void,
+    onTermination?: () => void
+};
 
 declare class FancyPrinter {
     static static: FancyPrinter;
@@ -104,7 +111,7 @@ declare class FancyPrinter {
         debug: { text: "DEBUG", backgroundColor: "gray", textColor: "gray" },
         notice: { text: "NOTICE", backgroundColor: "cyanBright", textColor: "cyan" },
         log: { text: "LOG", backgroundColor: "gray", textColor: "white" },
-        assert: {text: "ASSERT", backgroundColor: "white", color: "black", textColor: "gray"}
+        assert: { text: "ASSERT", backgroundColor: "white", color: "black", textColor: "gray" }
     };
     options: LogOptions;
     components: Record<string, ComponentFunction> | {
@@ -226,6 +233,28 @@ declare class FancyPrinter {
     getGroup(): number;
 
     updateOptions(options: LogOptions): FancyPrinter;
+
+    print(text: string): FancyPrinter;
+
+    printLine(text: string): FancyPrinter;
+
+    println(text: string): FancyPrinter;
+
+    backspace(): FancyPrinter;
+
+    substitute(...any: any[]): FancyPrinter;
+
+    static substitute(substitutions?: Substitution[], chr?: string, ...any: any[]): FancyPrinter;
+
+    readLine(stringify?: boolean, trim?: boolean): Promise<string>;
+
+    readKey(stringify?: boolean, trim?: boolean): Promise<string>;
+
+    readCustom(options?: ReadOptions): Promise<string>;
+
+    readPassword(options?: ReadOptions & {character?: string}): Promise<string>;
+
+    readSelection(list: string[], options?: ReadOptions): Promise<string>;
 }
 
 declare global {

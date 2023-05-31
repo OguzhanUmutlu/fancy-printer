@@ -3,13 +3,12 @@
 const chalk = require("chalk");
 const fs = require("fs");
 const path = require("path");
-const {stdout} = process;
 
 const supportsBasicColor = chalk.supportsColor.hasBasic;
 const supportsHexColor = chalk.supportsColor.has256;
 
-if (!supportsBasicColor) stdout.write("WARNING: The current terminal doesn't support basic colors! Basic colors will be ignored.\n");
-if (!supportsHexColor) stdout.write("WARNING: The current terminal doesn't support hexadecimal colors! Hexadecimal colors will be ignored.\n");
+if (!supportsBasicColor && process.stdout) process.stdout.write("WARNING: The current terminal doesn't support basic colors! Basic colors will be ignored.\n");
+if (!supportsHexColor && process.stdout) process.stdout.write("WARNING: The current terminal doesn't support hexadecimal colors! Hexadecimal colors will be ignored.\n");
 
 const fnCheck = (s, ...args) => typeof s === "function" ? s(...args) : s;
 
@@ -28,8 +27,9 @@ const ClearAll = "\x1B[39m\x1B[49m\x1B[22m\x1B[23m\x1B[24m\x1B[29m";
 class Printer {
     _periodicOptions = null;
     static DEFAULT_OPTIONS = {
-        format: "$date $time $tag $text",
+        format: "%date %time %tag %text",
         substitutions: true,
+        newLine: true,
 
         defaultColor: "",
         defaultBackgroundColor: "",
@@ -113,7 +113,8 @@ class Printer {
         stackStrikethrough: false,
         stackPadding: 0*/
     };
-    stdout = stdout;
+    stdin = process.stdin || process.openStdin();
+    stdout = process.stdout;
     Printer = Printer;
     tags = {
         pass: {text: "PASS", backgroundColor: "greenBright", textColor: "green"},
@@ -127,7 +128,7 @@ class Printer {
         assert: {text: "ASSERT", backgroundColor: "white", color: "black", textColor: "gray"}
     };
     streams = new Map;
-    chr = "$";
+    chr = "%";
     components = {
         date: opts => {
             const date = new Date;
@@ -183,23 +184,24 @@ class Printer {
     };
     substitutions = [
         {
-            regex: "[oO]",
+            regex: "[oOs]",
             run: str => Printer.stringify(str)
         },
         {
             regex: "(\\.\\d+)?[di]",
             run: (str, match) => {
                 if (typeof str === "number") str = Math.sign(str) * Math.floor(Math.abs(str));
-                const part = match.substring(1, match.length - 1);
+                const part = match.substring(2, match.length - 1);
+                str = Printer.stringify(str);
                 if (part) str = str.padStart(part * 1, "0");
-                return Printer.stringify(str);
+                return str;
             }
         },
         {
             regex: "(\\.\\d+)?f",
             run: (str, match) => {
-                const part = match.substring(1, match.length - 1);
-                if (part) str = str.padStart(part * 1, "0");
+                const part = match.substring(2, match.length - 1);
+                if (part && typeof str === "number") str = str.toFixed(part * 1);
                 return Printer.stringify(str);
             }
         },
@@ -220,6 +222,7 @@ class Printer {
                 // todo: overline, maybe if it's possible?
                 // [X] padding = n > 0
                 // [X] font-style = normal | italic | oblique
+
                 // [ ] background and its longhand equivalents
                 // [ ] border and its longhand equivalents
                 // [ ] outline and its longhand equivalents
@@ -501,28 +504,48 @@ class Printer {
         return this;
     };
 
+    printLine(text) {
+        return this.println(text);
+    };
+
     print(text) {
         if (!this.stdout) return this;
         this.stdout.write(Printer.stringify(text));
         return this;
     };
 
+    backspace(amount = 1) {
+        if (!this.stdout) return this;
+        this.stdout.write("\b \b".repeat(amount));
+        return this;
+    };
+
+    static substitute(substitutions, chr, ...texts) {
+        let text = "";
+        for (let i = 0; i < texts.length; i++) {
+            let t = Printer.stringify(texts[i]);
+            if (i !== texts.length - 1) substitutions.forEach(sub => {
+                const reg = sub.regex instanceof RegExp ? sub.regex : new RegExp("(\\" + chr + sub.regex + ")", "g");
+                t = t.replaceAll(reg, match => {
+                    i++;
+                    return sub.run(texts[i], match);
+                });
+            });
+            text += t;
+            if (i !== texts.length - 1) text += " ";
+        }
+        return text;
+    };
+
+    substitute(...texts) {
+        return Printer.substitute(this.substitutions, this.chr, ...texts);
+    };
+
     log(...texts) {
         const options = this.options;
         let text = "";
         if (this.options.substitutions) {
-            for (let i = 0; i < texts.length; i++) {
-                let t = Printer.stringify(texts[i]);
-                if (i !== texts.length - 1) this.substitutions.forEach(sub => {
-                    const reg = sub.regex instanceof RegExp ? sub.regex : new RegExp("(\\" + this.chr + sub.regex + ")", "g");
-                    t = t.replaceAll(reg, match => {
-                        i++;
-                        return sub.run(texts[i], match);
-                    });
-                });
-                text += t;
-                if (i !== texts.length - 1) text += " ";
-            }
+            text = this.substitute(...texts);
         } else {
             for (let i = 0; i < texts.length; i++) {
                 let t = Printer.stringify(texts[i]);
@@ -549,8 +572,8 @@ class Printer {
             const l = line;
             line = Printer.color(line, options.defaultColor);
             line = Printer.color(line, options.defaultBackgroundColor);
-            this.println(Printer.paint(" ".repeat(this._group), componentHelper("group", options)) + colored.replaceAll(this.chr + "text", line));
-            this.streams.forEach(stream => stream.write(" ".repeat(this._group) + plain.replaceAll(this.chr + "text", l).replaceAll(/\x1B\[\d+m/g, "") + "\n"));
+            this[options.newLine ? "println" : "print"](Printer.paint(" ".repeat(this._group), componentHelper("group", options)) + colored.replaceAll(this.chr + "text", line));
+            this.streams.forEach(stream => stream.write(" ".repeat(this._group) + plain.replaceAll(this.chr + "text", l).replaceAll(/\x1B\[\d+m/g, "") + (options.newLine ? "\n" : "")));
         });
         return this;
     };
@@ -607,11 +630,11 @@ class Printer {
     };
 
     clear() {
-        if (this.stdout && this.stdout.isTTY) this.print("\x1B[2J\x1B[3J\x1B[H");
+        if (this.stdout && this.stdout.isTTY) this.stdout.write("\x1B[2J\x1B[3J\x1B[H");
     };
 
-    table(object, columns = null, tagName = "log") {
-        if (typeof object !== "object") return this.tag(tagName, object);
+    tableRaw(object, columns = null) {
+        if (typeof object !== "object") return false;
         const notDefined = {};
         let keys, values;
         if (object instanceof Set) object = [...object];
@@ -625,17 +648,14 @@ class Printer {
             values = Object.values(object);
         }
         if (object.constructor === Array) keys = keys.map(i => i * 1);
-        if (!keys.length) {
-            this.log("┌─────────┐\n│ (index) │\n├─────────┤\n└─────────┘")
-            return this;
-        }
+        if (!keys.length) return ["┌┐\n└┘"];
         let addedVal = false;
         const columnNames = columns || values.map(i => typeof i === "object" ? Object.keys(i) : []).flat();
         if (values.some(i => typeof i !== "object")) {
             addedVal = true;
-            columnNames.push("Values");
+            columnNames.push("Value");
         }
-        const table = [[["(index)", "(index)", "(index)"], ...columnNames.map(i => [i, i, i])]];
+        const table = [[["", "", ""], ...columnNames.map(i => [i, i, i])]];
         const ins = (s, color = true) => require("util").inspect(s, false, null, color);
         keys.forEach((key, index) => {
             const value = values[index];
@@ -644,18 +664,25 @@ class Printer {
         });
         const columnLengths = new Array(table[0].length).fill(0).map((_, i) => table.reduce((a, b) => Math.max(a, b[i][2].length), 0));
         const topSp = columnLengths.map(i => "─".repeat(i + 2));
-        this.tag(tagName, "┌" + topSp.join("┬") + "┐");
+        let result = ["┌" + topSp.join("┬") + "┐"];
         for (let i = 0; i < table.length; i++) {
-            if (i) this.tag(tagName, "├" + topSp.join("┼") + "┤")
+            if (i) result.push("├" + topSp.join("┼") + "┤")
             const row = table[i];
-            this.tag(tagName, "│" + row.map((k, j) => {
+            result.push("│" + row.map((k, j) => {
                 const l = k[0] === notDefined ? "" : (i ? k[1] : k[0]);
                 const totalSpace = columnLengths[j] - (k[0] === notDefined ? 0 : k[2].length) + 2;
                 const firstSpace = Math.round(totalSpace / 2);
                 return " ".repeat(firstSpace) + l + " ".repeat(totalSpace - firstSpace);
             }).join("│") + "│");
         }
-        this.tag(tagName, "└" + topSp.join("┴") + "┘");
+        result.push("└" + topSp.join("┴") + "┘");
+        return result;
+    };
+
+    table(object, columns = null, tagName = "log") {
+        const result = this.tableRaw(object, columns);
+        if (result) result.forEach(i => tagName ? this.tag(tagName, i) : this.println(i));
+        else tagName ? this.tag(tagName, object) : this.println(i);
         return this;
     };
 
@@ -720,6 +747,109 @@ class Printer {
         this.options = {...this.options, ...opts};
         return this;
     };
+
+    async readStdinData() {
+        return await new Promise(r => this.stdin.once("data", r));
+    }
+
+    async readLine(stringify = true, trim = true) {
+        if (!this.stdin) return "";
+        this.stdin.resume();
+        let res = await this.readStdinData();
+        if (stringify) res = res.toString();
+        if (trim) res = res.trim();
+        this.stdin.pause();
+        return res;
+    };
+
+    async readKey(stringify = false, trim = false) {
+        if (!this.stdin) return "";
+        this.stdin.setRawMode(true);
+        const res = await this.readLine(false, trim);
+        if (res[0] === 3) process.exit();
+        this.stdin.setRawMode(false);
+        return res.toString();
+    };
+
+    async readCustom(options) {
+        if (!this.stdin) return "";
+        if (typeof options !== "object" || Array.isArray(options)) options = {};
+        Printer.setDefault(options, {
+            onKey: text => this.print(text),
+            onBackspace: () => this.backspace(),
+            onArrow: () => true,
+            onEnd: () => this.print("\n"),
+            onTermination: () => process.exit()
+        });
+        let cursor = -1;
+        let result = "";
+        let promCb;
+        let prom = new Promise(r => promCb = r);
+        this.stdin.setRawMode(true);
+        this.stdin.resume();
+        let func;
+        this.stdin.on("data", func = buffer => {
+            let text = buffer.toString();
+            if (text === "\u0003") process.exit();
+            else if (text === "\u0008") {
+                result = result.substring(0, cursor) + result.substring(cursor + 1);
+                cursor--;
+                if (cursor < -1) cursor = -1;
+                options.onBackspace();
+                return;
+            } else if (text[0] === "\u001b") {
+                const type = {A: "up", B: "down", C: "right", D: "left"}[text[2]];
+                options.onArrow(type, text);
+                return;
+            } else if (text === "\n" || text === "\r" || text === "\u0004") {
+                this.stdin.setRawMode(false);
+                this.stdin.pause();
+                options.onEnd();
+                this.stdin.off("data", func);
+                promCb(result);
+                return;
+            } else {
+                result = result.substring(0, cursor + 1) + text + result.substring(cursor + 1);
+                cursor++;
+            }
+            options.onKey(text);
+        });
+        return await prom;
+    };
+
+    async readPassword(options) {
+        if (typeof options !== "object" || Array.isArray(options)) options = {};
+        return await this.readCustom({
+            onKey: text => this.stdout.write(options.character || "*"),
+            ...options
+        });
+    };
+
+    async readSelection(list = [], options) {
+        if (typeof options !== "object" || Array.isArray(options)) options = {};
+        if (list.length === 0) return "";
+        let selected = 0;
+        this.print(list[selected]);
+        await this.readCustom({
+            onKey: r => r,
+            onBackspace: r => r,
+            onArrow: arrow => {
+                let old = selected;
+                if (arrow === "up") {
+                    selected--;
+                    if (selected < 0) selected = list.length - 1;
+                } else if (arrow === "down") {
+                    selected++;
+                    if (selected > list.length - 1) selected = 0;
+                } else return;
+                this.backspace(list[old].length);
+                this.print(list[selected]);
+            }, ...options
+        });
+        return selected;
+    };
 }
 
+Printer.inline = new Printer({newLine: false});
+Printer["prototype"].inline = Printer.inline;
 module.exports = Printer.static = new Printer();
