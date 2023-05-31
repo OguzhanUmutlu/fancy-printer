@@ -136,7 +136,7 @@ class Printer {
             return {result: Printer.paint(rs, componentHelper("date", opts)), plain: rs};
         }, tag: opts => {
             const tag = this.tags[opts.tag || ""] || this.tags[(opts.tag || "").toLowerCase()] || this.tags.log;
-            opts.defaultColor = opts.defaultColor || tag.textColor;
+            opts.defaultColor = /*opts.defaultColor || */tag.textColor;
             const txt = typeof tag.text === "function" ? tag.text() : tag.text;
             const gotOpts = componentHelper("tag", opts);
             return {
