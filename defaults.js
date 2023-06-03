@@ -1,5 +1,5 @@
 const fnCheck = (s, ...args) => typeof s === "function" ? s(...args) : s;
-const cH = (opts, name, c) => fnCheck(opts[name + c]);
+const cH = (opts, name, c) => fnCheck(opts[name + c], opts);
 const componentHelper = (name, opts) => ({
     color: cH(opts, name, "Color"),
     backgroundColor: cH(opts, name, "BackgroundColor"),
@@ -24,7 +24,8 @@ module.exports = instance => {
         debug: {text: "DEBUG", backgroundColor: "gray", textColor: "gray"},
         notice: {text: "NOTICE", backgroundColor: "cyanBright", textColor: "cyan"},
         log: {text: "LOG", backgroundColor: "gray", textColor: "white"},
-        assert: {text: "ASSERT", backgroundColor: "white", color: "black", textColor: "gray"}
+        assert: {text: "ASSERT", backgroundColor: "white", color: "black", textColor: "gray"},
+        ready: {text: "READY", backgroundColor: "magenta", textColor: "magenta"}
     };
     instance.streams = new Map;
     instance.chr = "%";
@@ -50,7 +51,7 @@ module.exports = instance => {
         return {
             result: Printer.paint(txt, {
                 ...gotOpts,
-                color: fnCheck(tag.color) || gotOpts.color,
+                color: gotOpts.color || fnCheck(tag.color),
                 backgroundColor: fnCheck(tag.backgroundColor)
             }), plain: txt
         };
@@ -91,10 +92,12 @@ module.exports = instance => {
             return Cancel;
         }
     });
-    instance.addSubstitution("d", (s, Cancel) => {
+    const integerSub = (s, Cancel) => {
         if (typeof s !== "number") return Cancel;
         return ((Math.sign(s) * Math.floor(Math.abs(s)))).toString();
-    });
+    };
+    instance.addSubstitution("i", integerSub);
+    instance.addSubstitution("d", integerSub);
     instance.addSubstitution("f", (s, Cancel) => {
         if (typeof s !== "number") return Cancel;
         return s.toString();
