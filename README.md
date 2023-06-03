@@ -29,6 +29,7 @@ printer.info("This is a message!");
 printer.debug("Check the line 5!");
 printer.notice("Attention please!");
 printer.log("An original log!");
+printer.ready("I am ready!");
 printer.assert(5 % 2 === 0, "5 is not divisible by 2!");
 
 printer.tag("pass", "This worked as well!");
@@ -142,34 +143,38 @@ printer.makeHashedLoggerFile({
 
 ## ✨ Substitutions ✨
 
-### ✨ %o, %O, %s ✨
+### ✨ %o, %O, %s, %v ✨
 
 Puts the object into place by making it a string.
 
-```js
-printer.log("Hello, %s!", "world"); // Hello, world!
-```
-
-### ✨ %d, %i, %.1234d, %.1234i ✨
-
-Puts the integer into place and pads start/fixes the length if requested.
+Note: %o and %O only works on objects. %s only works on strings. %v works on everything.
 
 ```js
-printer.log("Hello, %d!", 12.34); // Hello, 12!
-printer.log("Hello, %i!", 12.34); // Hello, 12!
-printer.log("Hello, %.3d!", 12); // Hello, 012!
-printer.log("Hello, %.4d!", 12); // Hello, 0012!
+printer.log("Hello, %s!", "world");
 ```
 
-### ✨ %f, %.1234f ✨
+![](https://raw.githubusercontent.com/OguzhanUmutlu/fancy-printer/main/screenshots/img_4.png)
 
-Puts the floating number into place and fixes the length of the decimal part if requested.
+### ✨ %d, %i ✨
+
+Puts the integer into place.
 
 ```js
-printer.log("Hello, %f!", 12.34); // Hello, 12.34!
-printer.log("Hello, %.3f!", 12.34567); // Hello, 12.345!
-printer.log("Hello, %.4f!", 12.1); // Hello, 12.4000!
+printer.log("Hello, %d!", 12.34);
+printer.log("Hello, %i!", 12.34);
 ```
+
+![](https://raw.githubusercontent.com/OguzhanUmutlu/fancy-printer/main/screenshots/img_5.png)
+
+### ✨ %f ✨
+
+Puts the floating number into place.
+
+```js
+printer.log("Hello, %f!", 12.34);
+```
+
+![](https://raw.githubusercontent.com/OguzhanUmutlu/fancy-printer/main/screenshots/img_6.png)
 
 ### ✨ %c ✨
 
@@ -178,6 +183,8 @@ Adds styling to the rest of the text. Uses CSS syntax.
 ```js
 printer.log("Hello, %cthis is red!%c and now it's blue!", "color: red", "color: blue");
 ```
+
+![](https://raw.githubusercontent.com/OguzhanUmutlu/fancy-printer/main/screenshots/img_7.png)
 
 | Property                       | Default | Expected type                                                               | Description                                                                     |
 |--------------------------------|---------|-----------------------------------------------------------------------------|---------------------------------------------------------------------------------|
@@ -214,6 +221,8 @@ const {inline} = printer;
 })();
 ```
 
+![](https://raw.githubusercontent.com/OguzhanUmutlu/fancy-printer/main/screenshots/img_8.png)
+
 ## ✨ Utilities ✨
 
 ```js
@@ -222,12 +231,67 @@ printer.print("Hello, world!"); // No substitution or formatting will be used an
 printer.printLine("Hello, world!"); // No substitution or formatting will be used and will break line.
 printer.println("Hello, world!");
 
+printer.println(printer.substitute("Hello,%c world!", "color: red")); // Manual substitution
+
+printer.print("Hello! You!")
 printer.backspace(5); // Erases 5 characters from the text written.
 
-printer.print(printer.substitute("Hello,%c world!", "color: red")); // Manual substitution
-
-printer.clear(); // Clears the console
+printer.clear(); // Clears the console (it's not included in the screenshot)
 ```
+
+![](https://raw.githubusercontent.com/OguzhanUmutlu/fancy-printer/main/screenshots/img_9.png)
+
+## ✨ Presets ✨
+
+### ✨ Inline Preset ✨
+
+This preset basically stops putting a line break at the end of logs.
+
+Can be achieved by doing `printer.options.newLine = false` or just using the existing preset:
+
+```js
+const {inline} = require("fancy-printer");
+
+inline.log("Hello, ");
+inline.print("world!");
+```
+![](https://raw.githubusercontent.com/OguzhanUmutlu/fancy-printer/main/screenshots/img_10.png)
+
+### ✨ Raw Preset ✨
+
+This preset basically removes tags, dates and time from the format.
+
+Can be achieved by doing `printer.setFormat("%text")` or just using the existing preset:
+
+```js
+const {raw} = require("fancy-printer");
+
+raw.log("Hello, world!");
+raw.log("%cNeeds some coloring!", "color: red");
+```
+![](https://raw.githubusercontent.com/OguzhanUmutlu/fancy-printer/main/screenshots/img_11.png)
+
+### ✨ Brackets Preset ✨
+
+This preset is a custom preset requested by a user.
+
+Can be achieved by using the preset:
+
+```js
+const {brackets} = require("fancy-printer");
+
+brackets.pass("Passed!");
+brackets.fail("Failed!");
+brackets.error("An error occurred!");
+brackets.warn("Something might go wrong!");
+brackets.info("This is a message!");
+brackets.debug("Check the line 5!");
+brackets.notice("Attention please!");
+brackets.log("An original log!");
+brackets.ready("I am ready!");
+brackets.assert(5 % 2 === 0, "5 is not divisible by 2!");
+```
+![](https://raw.githubusercontent.com/OguzhanUmutlu/fancy-printer/main/screenshots/img_12.png)
 
 ## ✨ Logging Options ✨
 

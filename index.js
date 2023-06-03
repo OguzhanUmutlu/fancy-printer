@@ -102,7 +102,12 @@ const DEFAULT_OPTIONS = {
     stackPadding: 0*/
 };
 
-function Printer(options) {
+/**
+ * @param {Object} options
+ * @returns {Object<any, any> | any}
+ * @constructor
+ */
+function Printer(options = {}) {
     const self = {};
     if (typeof options !== "object" || Array.isArray(options)) options = {};
     Printer.setDefault(options, Printer.DEFAULT_OPTIONS);
@@ -172,7 +177,7 @@ prototype.makeLoggerFile = function (self, options) {
                 str = b[1].toString().padStart(len, "0");
                 if (str.length > len) str = str.substring(str.length - len);
                 return str;
-            }), options.format);
+            }), fnCheck(options.format, options));
             const file = path.join(options.folder, formatted);
             if (!sl._streams.has(file)) {
                 if (sl._lastStream) sl._lastStream.close();
@@ -192,7 +197,7 @@ prototype.makeHashedLoggerFile = function (self, options) {
         folder: "./logs", radix: 16, divide: 3, format: "log-" + self.chr + "t.log"
     });
     if (!fs.existsSync(options.folder)) fs.mkdirSync(options.folder);
-    const file = path.join(options.folder, options.format.replaceAll(self.chr + "t", Math.floor(Date.now() / (10 ** options.divide)).toString(options.radix)));
+    const file = path.join(options.folder, fnCheck(options.format, options).replaceAll(self.chr + "t", Math.floor(Date.now() / (10 ** options.divide)).toString(options.radix)));
     self.addFile(file);
     return self;
 };
@@ -327,7 +332,7 @@ prototype.log = function (self, ...texts) {
     const lines = Printer.stringify(text).split("\n");
     let comp = {};
     const reg = `\\${self.chr}[a-zA-Z]+`;
-    const spl = options.format.split(new RegExp("(" + reg + ")", "g"));
+    const spl = fnCheck(options.format, options).split(new RegExp("(" + reg + ")", "g"));
     const formatted = spl.filter(i => i).map(i => {
         if (!new RegExp("^" + reg + "$").test(i.toString())) return i;
         i = i.substring(1);
@@ -352,8 +357,10 @@ prototype.log = function (self, ...texts) {
 prototype.tag = function (self, tag, ...texts) {
     const {tag: old} = self.options;
     const {defaultColor, defaultBackgroundColor} = self.options;
+    // noinspection JSConstantReassignment
     self.options.tag = tag;
     self.log(...texts);
+    // noinspection JSConstantReassignment
     self.options.tag = old;
     self.options.defaultColor = defaultColor;
     self.options.defaultBackgroundColor = defaultBackgroundColor;
@@ -398,6 +405,10 @@ prototype.debug = function (self, ...texts) {
 
 prototype.notice = function (self, ...texts) {
     return self.tag("notice", ...texts);
+};
+
+prototype.ready = function (self, ...texts) {
+    return self.tag("ready", ...texts);
 };
 
 prototype.clear = function (self) {
@@ -639,7 +650,7 @@ prototype.css = function (self, text) {
 prototype.setOptions = function (self, options) {
     if (typeof options !== "object" || Array.isArray(options)) options = {};
     Printer.setDefault(options, Printer.DEFAULT_OPTIONS);
-    self.options = {...self.options, options};
+    self.options = {...self.options, ...options};
     return self;
 };
 
@@ -850,5 +861,30 @@ Printer.css = text => Printer.applyCSS(Printer.cleanCSS(Printer.parseCSS(text)))
 prototype.inline = Printer.inline = new Printer({newLine: false});
 prototype.raw = Printer.raw = new Printer({format: "%text"});
 prototype.static = Printer.static = prototype.default = Printer.default = new Printer();
+const brackets = prototype.brackets = Printer.brackets = new Printer({
+    tagBold: true,
+    tagPadding: 0,
+    tagColor: "default",
+    dateBackgroundColor: "",
+    timeBackgroundColor: "",
+    datePadding: 0,
+    timePadding: 0,
+    format: opts => Printer.css("color: " + brackets.getTag(opts.tag || "log").color) + "[%date] | [%time] [%tag] > %text" + ClearAll
+});
+brackets.tags = {
+    pass: {text: "PASS", textColor: "green", color: "green"},
+    fail: {text: "FAIL", textColor: "redBright", color: "redBright"},
+    error: {text: "ERR!", textColor: "red", color: "red"},
+    warn: {text: "WARN", textColor: "yellow", color: "yellow"},
+    info: {text: "INFO", textColor: "blue", color: "blue"},
+    debug: {text: "DEBUG", textColor: "gray", color: "gray"},
+    notice: {text: "NOTICE", textColor: "cyan", color: "cyan"},
+    log: {text: "LOG", textColor: "white", color: "white"},
+    assert: {text: "ASSERT", color: "gray", textColor: "gray"},
+    ready: {text: "READY", color: "magenta", textColor: "magenta"}
+};
+
+const list = ["inline", "raw", "static", "default", "brackets"];
+list.forEach(i => list.forEach(j => prototype[i][j] = prototype[j]));
 
 module.exports = prototype.static;

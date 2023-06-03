@@ -60,7 +60,9 @@ type LogOptions = {
     timeMillisecondLength?: number,
 
     groupColor?: Color,
-    groupBackgroundColor?: Color
+    groupBackgroundColor?: Color,
+
+    readonly tag: string
 } | Record<any, any>;
 type ComponentFunction = (options?: LogOptions) => ({
     result: any,
@@ -87,14 +89,14 @@ type TagComponent = {
     backgroundColor: Color | (() => Color),
     textColor: Color | (() => Color)
 };
-type TagName = "pass" | "fail" | "error" | "warn" | "info" | "debug" | "notice" | "log" | string;
+type TagName = "pass" | "fail" | "error" | "warn" | "info" | "debug" | "notice" | "log" | "ready" | string;
 type SubstitutionFunction = (text: string, responses: { Cancel: {}, Color: { value: string } }) => string | Object;
 type ReadOptions = {
-    onKey?: (key: string) => void,
-    onBackspace?: () => void,
-    onArrow?: (key: "up" | "down" | "right" | "left", text: string) => void,
-    onTermination?: () => void
-};
+    onKey?: (key: string) => void | Function | any,
+    onBackspace?: () => void | Function | any,
+    onArrow?: (key: "up" | "down" | "right" | "left", text: string) => void | Function | any,
+    onTermination?: () => void | Function | any
+} | Record<any, any>;
 type Styles = {
     font: {
         color: Color,
@@ -120,10 +122,16 @@ type Styles = {
 
 declare class FancyPrinter {
     static DEFAULT_options?: LogOptions;
+
     static static: FancyPrinter;
     static raw: FancyPrinter;
+    static brackets: FancyPrinter;
+    static inline: FancyPrinter;
     static: FancyPrinter;
     raw: FancyPrinter;
+    brackets: FancyPrinter;
+    inline: FancyPrinter;
+
     stdout: tty.WriteStream & { fd: 1 };
     Printer: typeof FancyPrinter;
     tags: Record<string, TagComponent> | {
@@ -135,7 +143,8 @@ declare class FancyPrinter {
         debug: TagComponent,
         notice: TagComponent,
         log: TagComponent,
-        assert: TagComponent
+        assert: TagComponent,
+        ready: TagComponent
     };
     options: LogOptions;
     components: Record<string, ComponentFunction> | {
@@ -241,6 +250,8 @@ declare class FancyPrinter {
     debug(...any: any[]): FancyPrinter;
 
     notice(...any: any[]): FancyPrinter;
+
+    ready(...any: any[]): FancyPrinter;
 
     clear(): FancyPrinter;
 
