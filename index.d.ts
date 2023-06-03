@@ -61,7 +61,7 @@ type LogOptions = {
 
     groupColor?: Color,
     groupBackgroundColor?: Color
-};
+} | Record<any, any>;
 type ComponentFunction = (options?: LogOptions) => ({
     result: any,
     plain: any
@@ -330,6 +330,8 @@ declare class FancyPrinter {
     applyCSS(styles: Styles): string;
 
     css(text: string): string;
+
+    setOptions(options: LogOptions): FancyPrinter;
 }
 
 declare global {

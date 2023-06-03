@@ -57,7 +57,7 @@ module.exports = instance => {
     });
     instance.addComponent("time", opts => {
         const date = new Date;
-        const l = [["Date", "getDate"], ["Hour", "getDate"], ["Minute", "getMinutes"], ["Second", "getSeconds"], ["Millisecond", "getMilliseconds", opts.timeMillisecondLength],];
+        const l = [["Date", "getDate"], ["Hour", "getHours"], ["Minute", "getMinutes"], ["Second", "getSeconds"], ["Millisecond", "getMilliseconds", opts.timeMillisecondLength]];
         let text = "";
         for (let i = 0; i < l.length; i++) {
             const k = l[i];
