@@ -5,7 +5,6 @@ const fs = require("fs");
 const path = require("path");
 const init = require("./defaults.js");
 const util = require("util");
-const Tester = require("./tests/Tester");
 
 const supportsBasicColor = chalk.supportsColor.hasBasic;
 const supportsHexColor = chalk.supportsColor.has256;
