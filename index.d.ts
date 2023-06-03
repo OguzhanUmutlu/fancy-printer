@@ -88,41 +88,67 @@ type TagComponent = {
     textColor: Color | (() => Color)
 };
 type TagName = "pass" | "fail" | "error" | "warn" | "info" | "debug" | "notice" | "log" | string;
-type SubstitutionFunction = (text: string, match: string) => string;
-type Substitution = { regex: string | RegExp, run: SubstitutionFunction };
+type SubstitutionFunction = (text: string, responses: { Cancel: {}, Color: { value: string } }) => string | Object;
 type ReadOptions = {
     onKey?: (key: string) => void,
     onBackspace?: () => void,
     onArrow?: (key: "up" | "down" | "right" | "left", text: string) => void,
     onTermination?: () => void
 };
+type Styles = {
+    font: {
+        color: Color,
+        style: {
+            italic: boolean
+        },
+        weight: number
+    },
+    background: {
+        color: Color
+    },
+    textDecoration: {
+        //color: Color,
+        line: {
+            under: boolean,
+            //over: boolean,
+            through: boolean
+        }
+    },
+    padding: number,
+    //margin: number,
+};
 
 declare class FancyPrinter {
-    static static: FancyPrinter;
     static DEFAULT_options?: LogOptions;
+    static static: FancyPrinter;
+    static raw: FancyPrinter;
+    static: FancyPrinter;
+    raw: FancyPrinter;
     stdout: tty.WriteStream & { fd: 1 };
     Printer: typeof FancyPrinter;
     tags: Record<string, TagComponent> | {
-        pass: { text: "PASS", backgroundColor: "greenBright", textColor: "green" },
-        fail: { text: "FAIL", backgroundColor: "redBright", textColor: "redBright" },
-        error: { text: "ERR!", backgroundColor: "red", textColor: "red" },
-        warn: { text: "WARN", backgroundColor: "yellow", textColor: "yellow" },
-        info: { text: "INFO", backgroundColor: "blueBright", textColor: "blue" },
-        debug: { text: "DEBUG", backgroundColor: "gray", textColor: "gray" },
-        notice: { text: "NOTICE", backgroundColor: "cyanBright", textColor: "cyan" },
-        log: { text: "LOG", backgroundColor: "gray", textColor: "white" },
-        assert: { text: "ASSERT", backgroundColor: "white", color: "black", textColor: "gray" }
+        pass: TagComponent,
+        fail: TagComponent,
+        error: TagComponent,
+        warn: TagComponent,
+        info: TagComponent,
+        debug: TagComponent,
+        notice: TagComponent,
+        log: TagComponent,
+        assert: TagComponent
     };
     options: LogOptions;
     components: Record<string, ComponentFunction> | {
         date: ComponentFunction,
         tag: ComponentFunction
     };
-    substitutions: Substitution[];
+    substitutions: Record<string, SubstitutionFunction>;
 
-    constructor(options?: LogOptions);
+    constructor(options: LogOptions);
+    constructor();
 
-    static paint(text: string, options?: PaintOptions): string;
+    static paint(text: string, options: PaintOptions): string;
+    static paint(text: string): string;
 
     static stringify(any: any): string;
 
@@ -132,25 +158,33 @@ declare class FancyPrinter {
 
     static setDefault(got, default_): void;
 
-    static makeGlobal(console?: boolean): void;
+    static makeGlobal(console: boolean): void;
+    static makeGlobal(): void;
 
-    static new(options?: LogOptions): FancyPrinter;
+    static new(options: LogOptions): FancyPrinter;
+    static new(): FancyPrinter;
 
-    static create(options?: LogOptions): FancyPrinter;
+    static create(options: LogOptions): FancyPrinter;
+    static create(): FancyPrinter;
 
-    makeGlobal(console?: boolean): FancyPrinter;
+    makeGlobal(console: boolean): FancyPrinter;
+    makeGlobal(): FancyPrinter;
 
-    new(options?: LogOptions): FancyPrinter;
+    new(options: LogOptions): FancyPrinter;
+    new(): FancyPrinter;
 
-    create(options?: LogOptions): FancyPrinter;
+    create(options: LogOptions): FancyPrinter;
+    create(): FancyPrinter;
 
     addFile(file: string): FancyPrinter;
 
     removeFile(file: string): FancyPrinter;
 
-    makeLoggerFile(options?: PeriodicLoggerOptions): FancyPrinter;
+    makeLoggerFile(options: PeriodicLoggerOptions): FancyPrinter;
+    makeLoggerFile(): FancyPrinter;
 
-    makeHashedLoggerFile(options?: LoggerOptions): FancyPrinter;
+    makeHashedLoggerFile(options: LoggerOptions): FancyPrinter;
+    makeHashedLoggerFile(): FancyPrinter;
 
     addComponent(name: string, callback: ComponentFunction): FancyPrinter;
 
@@ -160,11 +194,13 @@ declare class FancyPrinter {
 
     getComponent(name: string): ComponentFunction;
 
-    addSubstitution(regex: string | RegExp, callback: SubstitutionFunction): FancyPrinter;
+    addSubstitution(key: string, callback: SubstitutionFunction): FancyPrinter;
 
-    removeSubstitution(substitution: Substitution): FancyPrinter;
+    removeSubstitution(key: string): FancyPrinter;
 
-    getSubstitutions(): Substitution[];
+    getSubstitution(key: string): SubstitutionFunction;
+
+    getSubstitutions(): Record<string, SubstitutionFunction>;
 
     addTag(key: string, text: string, color: Color, backgroundColor: BackgroundColor, textColor: Color): FancyPrinter;
 
@@ -208,23 +244,34 @@ declare class FancyPrinter {
 
     clear(): FancyPrinter;
 
-    table(object, columns?: string[] | null, tagName?: TagName): FancyPrinter;
+    table(object: any, columns: string[] | null, tagName: TagName): FancyPrinter;
+    table(object: any, columns: string[] | null): FancyPrinter;
+    table(object: any): FancyPrinter;
 
     assert(assertion: boolean, ...any: any[]): FancyPrinter;
 
-    time(name?: string): FancyPrinter;
+    time(name: string): FancyPrinter;
+    time(): FancyPrinter;
 
-    timeGet(name?: string): number;
+    timeGet(name: string): number;
+    timeGet(): number;
 
-    timeLog(name?: string, fixed?: number): FancyPrinter;
+    timeLog(name: string, fixed: number): FancyPrinter;
+    timeLog(name: string): FancyPrinter;
+    timeLog(): FancyPrinter;
 
-    timeEnd(name?: string, fixed?: number): FancyPrinter;
+    timeEnd(name: string, fixed: number): FancyPrinter;
+    timeEnd(name: string): FancyPrinter;
+    timeEnd(): FancyPrinter;
 
-    count(name?: string): FancyPrinter;
+    count(name: string): FancyPrinter;
+    count(): FancyPrinter;
 
-    countGet(name?: string): number;
+    countGet(name: string): number;
+    countGet(): number;
 
-    countReset(name?: string): FancyPrinter;
+    countReset(name: string): FancyPrinter;
+    countReset(): FancyPrinter;
 
     group(): FancyPrinter;
 
@@ -240,21 +287,49 @@ declare class FancyPrinter {
 
     println(text: string): FancyPrinter;
 
+    backspace(amount: number): FancyPrinter;
     backspace(): FancyPrinter;
 
-    substitute(...any: any[]): FancyPrinter;
+    substitute(...any: any[]): string;
 
-    static substitute(substitutions?: Substitution[], chr?: string, ...any: any[]): FancyPrinter;
+    static substitute(substitutions: Record<string, SubstitutionFunction>, chr: string, ...any: any[]): string;
 
-    readLine(stringify?: boolean, trim?: boolean): Promise<string>;
+    readLine(stringify: true, trim: boolean): Promise<string>;
+    readLine(stringify: false, trim: boolean): Promise<Buffer>;
+    readLine(stringify: true): Promise<string>;
+    readLine(stringify: false): Promise<Buffer>;
+    readLine(): Promise<string>;
 
-    readKey(stringify?: boolean, trim?: boolean): Promise<string>;
+    readKey(stringify: true, trim: boolean): Promise<string>;
+    readKey(stringify: false, trim: boolean): Promise<Buffer>;
+    readKey(stringify: true): Promise<string>;
+    readKey(stringify: false): Promise<Buffer>;
+    readKey(): Promise<string>;
 
-    readCustom(options?: ReadOptions): Promise<string>;
+    readCustom(options: ReadOptions): Promise<string>;
+    readCustom(): Promise<string>;
 
-    readPassword(options?: ReadOptions & {character?: string}): Promise<string>;
+    readPassword(options: ReadOptions & { character: string }): Promise<string>;
+    readPassword(): Promise<string>;
 
-    readSelection(list: string[], options?: ReadOptions): Promise<string>;
+    readSelection(list: string[], options: ReadOptions): Promise<string>;
+    readSelection(list: string[]): Promise<string>;
+
+    static parseCSS(text: string): Object;
+
+    static cleanCSS(object: Object): Styles;
+
+    static applyCSS(styles: Styles): string;
+
+    static css(text: string): string;
+
+    parseCSS(text: string): Object;
+
+    cleanCSS(object: Object): Styles;
+
+    applyCSS(styles: Styles): string;
+
+    css(text: string): string;
 }
 
 declare global {
