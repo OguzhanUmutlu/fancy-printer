@@ -118,6 +118,8 @@ printer.makeLoggerFile({
 - **m**: Minute
 - **s**: Second
 - **S**: Millisecond
+- **month** Gives the name of the month
+- **day** Gives the name of the day
 
 ### ✨ Padding on formatting arguments ✨
 
