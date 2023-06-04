@@ -105,7 +105,9 @@ printer.makeLoggerFile();
 // OPTIONAL:
 printer.makeLoggerFile({
     folder: "./myFolder/", // Default: logs. This is where the log files will be saved in.
-    format: "my log %DD-%MM-%YYYY.txt" // Default: log-DD-MM-YYYY.log. The format of the name of the file.
+    format: "my log %DD-%MM-%YYYY.txt", // Default: log-DD-MM-YYYY.log. The format of the name of the file.
+    month: "long", // the type of the %month, expects: "numeric" | "2-digit" | "long" | "short" | "narrow"
+    day: "long", // the type of the %month variable, expects: "long" | "short" | "narrow"
 });
 ```
 

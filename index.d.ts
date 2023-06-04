@@ -81,7 +81,8 @@ type LoggerOptions = {
     folder?: string, radix?: number, divide?: number, format?: string
 };
 type PeriodicLoggerOptions = {
-    folder?: string, format?: string
+    folder?: string, format?: string, month?: "numeric" | "2-digit" | "long" | "short" | "narrow",
+    day?: "long" | "short" | "narrow"
 };
 type TagComponent = {
     text: string | (() => string),
