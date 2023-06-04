@@ -168,8 +168,8 @@ prototype.makeLoggerFile = function (self, options) {
             const ms = d.getMilliseconds();
             const date = new Date;
             const list = [
-                ["date", date.toLocaleString("en", {weekday: "long"}), true],
-                ["month", date.toLocaleString("en", {month: "long"}), true],
+                ["date", date.toLocaleString("en", {weekday: options.day}), true],
+                ["month", date.toLocaleString("en", {month: options.month}), true],
                 ["D", day],
                 ["M", month],
                 ["Y", year],
@@ -188,7 +188,6 @@ prototype.makeLoggerFile = function (self, options) {
             const file = path.join(options.folder, formatted);
             if (!sl._streams.has(file)) {
                 if (sl._lastStream) sl._lastStream.close();
-                console.log(path.dirname(file))
                 fs.mkdirSync(path.dirname(file), {recursive: true});
                 sl._streams.set(file, sl._lastStream = fs.createWriteStream(file, {flags: "a"}));
             }
