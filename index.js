@@ -148,7 +148,8 @@ prototype.removeFile = function (self, file) {
 prototype.makeLoggerFile = function (self, options) {
     if (typeof options !== "object" || Array.isArray(options)) options = {};
     Printer.setDefault(options, {
-        folder: "./logs", format: "log-" + self.chr + "DD-" + self.chr + "MM-" + self.chr + "YYYY.log"
+        folder: "./logs", format: "log-" + self.chr + "DD-" + self.chr + "MM-" + self.chr + "YYYY.log",
+        month: "long", day: "long"
     });
     self._periodicOptions = options;
     if (self.streams.get("__periodic__")) return;
