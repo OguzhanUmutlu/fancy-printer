@@ -1,7 +1,9 @@
 // noinspection JSUnusedGlobalSymbols,JSUnusedLocalSymbols
 
-const chalk = require("chalk");
-const fs = require("fs");
+const isWeb = typeof require === "undefined";
+
+const chalk = isWeb ? null : require("chalk");
+const fs = isWeb ? null : require("fs");
 const path = require("path");
 const init = require("./defaults.js");
 const util = require("util");
@@ -163,7 +165,10 @@ prototype.makeLoggerFile = function (self, options) {
             const minutes = d.getMinutes();
             const seconds = d.getSeconds();
             const ms = d.getMilliseconds();
+            const date = new Date;
             const list = [
+                ["date", date.toLocaleString("en", {weekday: "long"}), true],
+                ["month", date.toLocaleString("en", {month: "long"}), true],
                 ["D", day],
                 ["M", month],
                 ["Y", year],
@@ -172,7 +177,8 @@ prototype.makeLoggerFile = function (self, options) {
                 ["s", seconds],
                 ["S", ms]
             ];
-            const formatted = list.reduce((a, b) => a.replaceAll(new RegExp("\\" + self.chr + b[0] + "+", "g"), str => {
+            const formatted = list.reduce((a, b) => a.replaceAll(new RegExp("\\" + self.chr + b[0] + (b[2] ? "" : "+"), "g"), str => {
+                if (b[2]) return b[1];
                 const len = str.length - 1;
                 str = b[1].toString().padStart(len, "0");
                 if (str.length > len) str = str.substring(str.length - len);
@@ -181,6 +187,8 @@ prototype.makeLoggerFile = function (self, options) {
             const file = path.join(options.folder, formatted);
             if (!sl._streams.has(file)) {
                 if (sl._lastStream) sl._lastStream.close();
+                console.log(path.dirname(file))
+                fs.mkdirSync(path.dirname(file), {recursive: true});
                 sl._streams.set(file, sl._lastStream = fs.createWriteStream(file, {flags: "a"}));
             }
             sl._streams.get(file).write(content);
