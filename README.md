@@ -2,7 +2,28 @@
 
 A fancy logger with a lot of customization!
 
+No dependencies! Just one file!
+
 [![](https://img.shields.io/badge/Discord-black?style=for-the-badge&logo=discord)](https://discord.gg/emAhrw3mvM)
+
+# 📩 Installation 📩
+
+```shell
+npm install fancy-printer
+```
+
+## ✨ Fanciness continues on Web ✨
+
+```html
+
+<script src="./node_modules/fancy-printer/index.js"></script>
+
+<script>
+    printer.log("Hello, world!");
+</script>
+```
+
+- Note: Web doesn't have features like logging to a file because it is not possible.
 
 # 🔧 Usage 🔧
 
@@ -259,6 +280,7 @@ const {inline} = require("fancy-printer");
 inline.log("Hello, ");
 inline.print("world!");
 ```
+
 ![](https://raw.githubusercontent.com/OguzhanUmutlu/fancy-printer/main/screenshots/img_10.png)
 
 ### ✨ Raw Preset ✨
@@ -273,6 +295,7 @@ const {raw} = require("fancy-printer");
 raw.log("Hello, world!");
 raw.log("%cNeeds some coloring!", "color: red");
 ```
+
 ![](https://raw.githubusercontent.com/OguzhanUmutlu/fancy-printer/main/screenshots/img_11.png)
 
 ### ✨ Brackets Preset ✨
@@ -295,6 +318,7 @@ brackets.log("An original log!");
 brackets.ready("I am ready!");
 brackets.assert(5 % 2 === 0, "5 is not divisible by 2!");
 ```
+
 ![](https://raw.githubusercontent.com/OguzhanUmutlu/fancy-printer/main/screenshots/img_12.png)
 
 ## ✨ Logging Options ✨

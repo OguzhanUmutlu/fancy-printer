@@ -146,7 +146,7 @@ declare class FancyPrinter {
         log: TagComponent,
         assert: TagComponent,
         ready: TagComponent
-    };
+    } | Record<any, any>;
     options: LogOptions;
     components: Record<string, ComponentFunction> | {
         date: ComponentFunction,
