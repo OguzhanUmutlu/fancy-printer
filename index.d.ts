@@ -9,7 +9,8 @@ type BackgroundColor = Color;
 
 type LogOptions = {
     format?: string,
-    substitutions?: boolean,
+    substitutionsEnabled?: boolean,
+    componentsEnabled?: boolean,
     newLine?: boolean,
 
     defaultColor?: Color,

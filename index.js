@@ -200,7 +200,8 @@ const componentHelper = (name, opts) => ({
 
 const DEFAULT_OPTIONS = {
     format: "%date %time %tag %text",
-    substitutions: true,
+    substitutionsEnabled: true,
+    componentsEnabled: true,
     newLine: true,
 
     defaultColor: "",
@@ -499,9 +500,9 @@ prototype.makeLoggerFile = function (self, options) {
         month: "long", day: "long"
     });
     self._periodicOptions = options;
-    if (self.streams.get("__periodic__")) return;
+    if (self.streams.get("!periodic")) return;
     let sl;
-    self.streams.set("__periodic__", sl = {
+    self.streams.set("!periodic", sl = {
         write: content => {
             const options = self._periodicOptions;
             if (!fs.existsSync(options.folder)) fs.mkdirSync(options.folder);
@@ -675,7 +676,7 @@ prototype.substitute = function (self, ...texts) {
 prototype.log = function (self, ...texts) {
     const options = self.options;
     let text = "";
-    if (self.options.substitutions) {
+    if (self.options.substitutionsEnabled) {
         text = self.substitute(...texts);
     } else {
         for (let i = 0; i < texts.length; i++) {
@@ -687,19 +688,24 @@ prototype.log = function (self, ...texts) {
     text += ClearAll;
     const lines = Printer.stringify(text).split("\n");
     let comp = {};
-    const reg = `\\${self.chr}[a-zA-Z]+`;
-    const spl = fnCheck(options.format, options).split(new RegExp("(" + reg + ")", "g"));
-    const formatted = spl.filter(i => i).map(i => {
-        if (!new RegExp("^" + reg + "$").test(i.toString())) return i;
-        i = i.substring(1);
-        if (!self.components[i]) return self.chr + i;
-        i = comp[i] || self.components[i](options);
-        if (typeof i === "string" || typeof i === "number") return i.toString();
-        if (typeof i !== "object") throw new Error("Expected the component to throw string, number or an object, got: " + typeof i);
-        return i;
-    });
-    const colored = formatted.map(i => typeof i === "string" ? i : i.result).join("");
-    const plain = formatted.map(i => typeof i === "string" ? i : i.plain).join("");
+    let formatted = options.format;
+    let colored = formatted;
+    let plain = formatted;
+    if (options.componentsEnabled && Object.keys(self.components).length > 0) {
+        const reg = `\\${self.chr}[a-zA-Z]+`;
+        const spl = fnCheck(options.format, options).split(new RegExp("(" + reg + ")", "g"));
+        formatted = spl.filter(i => i).map(i => {
+            if (!new RegExp("^" + reg + "$").test(i.toString())) return i;
+            i = i.substring(1);
+            if (!self.components[i]) return self.chr + i;
+            i = comp[i] || self.components[i](options);
+            if (typeof i === "string" || typeof i === "number") return i.toString();
+            if (typeof i !== "object") throw new Error("Expected the component to throw string, number or an object, got: " + typeof i);
+            return i;
+        });
+        colored = formatted.map(i => typeof i === "string" ? i : i.result).join("");
+        plain = formatted.map(i => typeof i === "string" ? i : i.plain).join("");
+    }
     lines.forEach(line => {
         const l = line;
         line = Printer.color(line, options.defaultColor);
