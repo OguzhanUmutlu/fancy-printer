@@ -7,35 +7,35 @@ No dependencies! Just one file!
 [![](https://img.shields.io/badge/Discord-black?style=for-the-badge&logo=discord)](https://discord.gg/emAhrw3mvM)
 
 <!-- TOC -->
-
 * [🌟 Fancy Printer 🌟](#-fancy-printer-)
 * [📩 Installation 📩](#-installation-)
-    * [✨ Fanciness continues on Web ✨](#-fanciness-continues-on-web-)
+  * [✨ Fanciness continues on Web ✨](#-fanciness-continues-on-web-)
 * [🔧 Usage 🔧](#-usage-)
-    * [✨ Creating a printer ✨](#-creating-a-printer-)
-    * [✨ Default tags ✨](#-default-tags-)
-    * [✨ Creating tags ✨](#-creating-tags-)
-    * [✨ Formatting & Using/adding components & Changing the chr ✨](#-formatting--usingadding-components--changing-the-chr-)
-    * [✨ Making the printer global ✨](#-making-the-printer-global-)
-    * [✨ Logging to a specific file ✨](#-logging-to-a-specific-file-)
-    * [✨ Logging to a file *periodically* ✨](#-logging-to-a-file-periodically-)
-        * [✨ Formatting arguments ✨](#-formatting-arguments-)
-        * [✨ Padding on formatting arguments ✨](#-padding-on-formatting-arguments-)
-    * [✨ Logging to a file with a *hash* ✨](#-logging-to-a-file-with-a-hash-)
-    * [✨ Substitutions ✨](#-substitutions-)
-        * [✨ %o, %O, %s, %v ✨](#-o-o-s-v-)
-        * [✨ %d, %i ✨](#-d-i-)
-        * [✨ %f ✨](#-f-)
-        * [✨ %c ✨](#-c-)
-    * [✨ Reading input ✨](#-reading-input-)
-    * [✨ Utilities ✨](#-utilities-)
-    * [✨ Presets ✨](#-presets-)
-        * [✨ Inline Preset ✨](#-inline-preset-)
-        * [✨ Raw Preset ✨](#-raw-preset-)
-        * [✨ Brackets Preset ✨](#-brackets-preset-)
-    * [✨ Logging Options ✨](#-logging-options-)
-
+  * [✨ Creating a printer ✨](#-creating-a-printer-)
+  * [✨ Default tags ✨](#-default-tags-)
+  * [✨ Creating tags ✨](#-creating-tags-)
+  * [✨ Formatting & Using/adding components & Changing the chr ✨](#-formatting--usingadding-components--changing-the-chr-)
+  * [✨ Making the printer global ✨](#-making-the-printer-global-)
+  * [✨ Logging to a specific file ✨](#-logging-to-a-specific-file-)
+  * [✨ Logging to a file *periodically* ✨](#-logging-to-a-file-periodically-)
+    * [✨ Formatting arguments ✨](#-formatting-arguments-)
+    * [✨ Padding on formatting arguments ✨](#-padding-on-formatting-arguments-)
+  * [✨ Logging to a file with a *hash* ✨](#-logging-to-a-file-with-a-hash-)
+  * [✨ Substitutions ✨](#-substitutions-)
+    * [✨ %o, %O, %s, %v ✨](#-o-o-s-v-)
+    * [✨ %d, %i ✨](#-d-i-)
+    * [✨ %f ✨](#-f-)
+    * [✨ %c ✨](#-c-)
+  * [✨ Reading input ✨](#-reading-input-)
+  * [✨ Utilities ✨](#-utilities-)
+  * [✨ Presets ✨](#-presets-)
+    * [✨ Inline Preset ✨](#-inline-preset-)
+    * [✨ Raw Preset ✨](#-raw-preset-)
+    * [✨ Brackets Preset ✨](#-brackets-preset-)
+  * [✨ Logging Options ✨](#-logging-options-)
 <!-- TOC -->
+
+***
 
 # 📩 Installation 📩
 
@@ -58,9 +58,9 @@ npm install fancy-printer
 
 - Note: Web doesn't have features like logging to a file because it is not possible.
 
-# 🔧 Usage 🔧
-
 ***
+
+# 🔧 Usage 🔧
 
 ## ✨ Creating a printer ✨
 
