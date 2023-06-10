@@ -1011,7 +1011,6 @@ prototype.css = function (self, text) {
 
 prototype.setOptions = function (self, options) {
     if (typeof options !== "object" || Array.isArray(options)) options = {};
-    Printer.setDefault(options, Printer.DEFAULT_OPTIONS);
     self.options = {...self.options, ...options};
     return self;
 };
