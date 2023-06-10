@@ -43,6 +43,8 @@ No dependencies! Just one file!
 npm install fancy-printer
 ```
 
+***
+
 ## ✨ Fanciness continues on Web ✨
 
 ```html
@@ -58,6 +60,8 @@ npm install fancy-printer
 
 # 🔧 Usage 🔧
 
+***
+
 ## ✨ Creating a printer ✨
 
 ```js
@@ -69,6 +73,8 @@ newPrinter.log("Hello, world!");
 // OR just use it normally
 printer.log("Hello, world!");
 ```
+
+***
 
 ## ✨ Default tags ✨
 
@@ -89,6 +95,8 @@ printer.tag("pass", "This worked as well!");
 
 ![](https://raw.githubusercontent.com/larvance/fancy-printer/main/screenshots/img.png)
 
+***
+
 ## ✨ Creating tags ✨
 
 ```js
@@ -97,6 +105,8 @@ printer.tag("test", "Hello, world!");
 ```
 
 ![](https://raw.githubusercontent.com/larvance/fancy-printer/main/screenshots/img_1.png)
+
+***
 
 ## ✨ Formatting & Using/adding components & Changing the chr ✨
 
@@ -126,6 +136,8 @@ printer.info("Hello, world!");
 
 ![](https://raw.githubusercontent.com/larvance/fancy-printer/main/screenshots/img_2.png)
 
+***
+
 ## ✨ Making the printer global ✨
 
 ```js
@@ -143,11 +155,15 @@ printer.makeGlobal(true);
 console.info("test");
 ```
 
+***
+
 ## ✨ Logging to a specific file ✨
 
 ```js
 printer.addFile("./myFile.txt");
 ```
+
+***
 
 ## ✨ Logging to a file *periodically* ✨
 
@@ -183,6 +199,8 @@ For example if it's `DD` and if the day is 4, it becomes 04.
 
 If it's `YY` and if the year is 2023, it becomes 23. (so it cuts from the end)
 
+***
+
 ## ✨ Logging to a file with a *hash* ✨
 
 ```js
@@ -196,6 +214,8 @@ printer.makeHashedLoggerFile({
     format: "my log %t.txt" // Default: log-%t.log. The format of the name of the file. %t will be replaced by the time
 });
 ```
+
+***
 
 ## ✨ Substitutions ✨
 
@@ -251,6 +271,8 @@ printer.log("Hello, %cthis is red!%c and now it's blue!", "color: red", "color: 
 | padding                        | 0       | A positive integer                                                          | The amount of white space to add on both sides                                  |
 | font-style                     | normal  | normal \| italic \| oblique                                                 | The style of the text.                                                          |
 
+***
+
 ## ✨ Reading input ✨
 
 ```js
@@ -279,6 +301,8 @@ const {inline} = printer;
 
 ![](https://raw.githubusercontent.com/larvance/fancy-printer/main/screenshots/img_8.png)
 
+***
+
 ## ✨ Utilities ✨
 
 ```js
@@ -296,6 +320,8 @@ printer.clear(); // Clears the console (it's not included in the screenshot)
 ```
 
 ![](https://raw.githubusercontent.com/larvance/fancy-printer/main/screenshots/img_9.png)
+
+***
 
 ## ✨ Presets ✨
 
@@ -351,6 +377,8 @@ brackets.assert(5 % 2 === 0, "5 is not divisible by 2!");
 ```
 
 ![](https://raw.githubusercontent.com/larvance/fancy-printer/main/screenshots/img_12.png)
+
+***
 
 ## ✨ Logging Options ✨
 
