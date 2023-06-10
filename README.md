@@ -5,7 +5,6 @@ A fancy logger with a lot of customizations and blazingly fast speed!
 No dependencies! Just one file!
 
 [![](https://img.shields.io/badge/Discord-black?style=for-the-badge&logo=discord)](https://discord.gg/emAhrw3mvM)
-
 [![npm](https://img.shields.io/npm/v/fancy-printer.svg)](https://www.npmjs.com/package/fancy-printer)
 
 <!-- TOC -->
