@@ -1,10 +1,39 @@
 # 🌟 Fancy Printer 🌟
 
-A fancy logger with a lot of customization!
+A fancy logger with a lot of customizations and blazingly fast speed!
 
 No dependencies! Just one file!
 
 [![](https://img.shields.io/badge/Discord-black?style=for-the-badge&logo=discord)](https://discord.gg/emAhrw3mvM)
+
+<!-- TOC -->
+* [🌟 Fancy Printer 🌟](#-fancy-printer-)
+* [📩 Installation 📩](#-installation-)
+  * [✨ Fanciness continues on Web ✨](#-fanciness-continues-on-web-)
+* [🔧 Usage 🔧](#-usage-)
+  * [✨ Creating a printer ✨](#-creating-a-printer-)
+  * [✨ Default tags ✨](#-default-tags-)
+  * [✨ Creating tags ✨](#-creating-tags-)
+  * [✨ Formatting & Using/adding components & Changing the chr ✨](#-formatting--usingadding-components--changing-the-chr-)
+  * [✨ Making the printer global ✨](#-making-the-printer-global-)
+  * [✨ Logging to a specific file ✨](#-logging-to-a-specific-file-)
+  * [✨ Logging to a file *periodically* ✨](#-logging-to-a-file-periodically-)
+    * [✨ Formatting arguments ✨](#-formatting-arguments-)
+    * [✨ Padding on formatting arguments ✨](#-padding-on-formatting-arguments-)
+  * [✨ Logging to a file with a *hash* ✨](#-logging-to-a-file-with-a-hash-)
+  * [✨ Substitutions ✨](#-substitutions-)
+    * [✨ %o, %O, %s, %v ✨](#-o-o-s-v-)
+    * [✨ %d, %i ✨](#-d-i-)
+    * [✨ %f ✨](#-f-)
+    * [✨ %c ✨](#-c-)
+  * [✨ Reading input ✨](#-reading-input-)
+  * [✨ Utilities ✨](#-utilities-)
+  * [✨ Presets ✨](#-presets-)
+    * [✨ Inline Preset ✨](#-inline-preset-)
+    * [✨ Raw Preset ✨](#-raw-preset-)
+    * [✨ Brackets Preset ✨](#-brackets-preset-)
+  * [✨ Logging Options ✨](#-logging-options-)
+<!-- TOC -->
 
 # 📩 Installation 📩
 
@@ -326,7 +355,8 @@ brackets.assert(5 % 2 === 0, "5 is not divisible by 2!");
 | Key                       | Default                | Expected type                                                                                      | Description                                                                                                                         |
 |---------------------------|------------------------|----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
 | format                    | %date %time %tag %text | string                                                                                             | The formatting                                                                                                                      |
-| substitutions             | true                   | boolean                                                                                            | Whether the substitutions should work                                                                                               |
+| substitutionsEnabled      | true                   | boolean                                                                                            | Whether the substitutions should work                                                                                               |
+| componentsEnabled         | true                   | boolean                                                                                            | Whether the components should work                                                                                                      |
 | newLine                   | true                   | boolean                                                                                            | Whether the logger should print the text with a line break at the end                                                               |
 | defaultColor              | None                   | Color(string)                                                                                      | The default text color for the printer                                                                                              |
 | defaultBackgroundColor    | None                   | Color(string)                                                                                      | The default text background color for the printer                                                                                   |
