@@ -1257,7 +1257,7 @@ Printer.stringify = any => {
 };
 
 Printer.color = (text, color) => {
-    if (["default", "bg" + "default", "none", "bg" + "none", "transparent", "bg" + "transparent", ""].includes(color)) return text;
+    if (["default", "bgDefault", "none", "bgNone", "transparent", "bgTransparent", ""].includes(color)) return text;
     const isBg = color[0] === "b" && color[1] === "g";
     let rest = isBg ? color.substring(2) : color;
     rest = {
