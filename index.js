@@ -179,15 +179,9 @@ const util = isWeb ? {
     inspect: (a, _, __, clr) => JSON.stringify(a) // todo
 } : require("util");
 
-const supportsBasicColor = Color.supportsColor.hasBasic;
-const supportsHexColor = Color.supportsColor.has256;
-
-if (!supportsBasicColor && process.stdout) process.stdout.write("WARNING: The current terminal doesn't support basic colors! Basic colors will be ignored.\n");
-if (!supportsHexColor && process.stdout) process.stdout.write("WARNING: The current terminal doesn't support hexadecimal colors! Hexadecimal colors will be ignored.\n");
-
 const fnCheck = (s, ...args) => typeof s === "function" ? s(...args) : s;
 const ClearAll = isWeb ? Color.reset("$").replace("$", "") : "\x1B[39m\x1B[49m\x1B[22m\x1B[23m\x1B[24m\x1B[29m";
-const cH = (opts, name, c) => fnCheck(opts[name + c]);
+const cH = (opts, name, c) => fnCheck(opts[name ? name + c : c.toLowerCase()]);
 const componentHelper = (name, opts) => ({
     color: cH(opts, name, "Color"),
     backgroundColor: cH(opts, name, "BackgroundColor"),
@@ -198,11 +192,41 @@ const componentHelper = (name, opts) => ({
     strikethrough: cH(opts, name, "Strikethrough")
 });
 
+function __stack() {
+    const oldLimit = Error.stackTraceLimit;
+    Error.stackTraceLimit = Infinity;
+    const orig = Error.prepareStackTrace;
+    Error.prepareStackTrace = function (_, stack) {
+        return stack;
+    };
+    const err = new Error;
+    Error.captureStackTrace(err, arguments.callee);
+    const stack = err.stack;
+    Error.prepareStackTrace = orig;
+    Error.stackTraceLimit = oldLimit;
+    return stack.map(i => ({
+        this: i.getThis(),
+        typeName: i.getTypeName(),
+        function: i.getFunction(),
+        functionName: i.getFunctionName(),
+        methodName: i.getMethodName(),
+        fileName: i.getFileName(),
+        lineNumber: i.getLineNumber(),
+        columnNumber: i.getColumnNumber(),
+        evalOrigin: i.getEvalOrigin(),
+        topLevel: i.isToplevel(),
+        eval: i.isEval(),
+        native: i.isNative(),
+        constructor: i.isConstructor()
+    }));
+}
+
 const DEFAULT_OPTIONS = {
-    format: "%date %time %tag %text",
+    format: "%namespace%date %time %tag %text",
     substitutionsEnabled: true,
     componentsEnabled: true,
     newLine: true,
+    namespace: "",
 
     defaultColor: "",
     defaultBackgroundColor: "",
@@ -242,6 +266,48 @@ const DEFAULT_OPTIONS = {
 
     groupColor: "",
     groupBackgroundColor: "",
+
+    namespaceColor: "",
+    namespaceBackgroundColor: "magenta",
+    namespaceBold: true,
+    namespaceItalic: false,
+    namespaceUnderline: false,
+    namespaceStrikethrough: false,
+    namespacePadding: 1,
+
+    filenameColor: "red",
+    filenameBackgroundColor: "",
+    filenameBold: true,
+    filenameItalic: false,
+    filenameUnderline: false,
+    filenameStrikethrough: false,
+    filenamePadding: 0,
+    filenameBase: true,
+
+    lineColor: "red",
+    lineBackgroundColor: "",
+    lineBold: true,
+    lineItalic: false,
+    lineUnderline: false,
+    lineStrikethrough: false,
+    linePadding: 0,
+
+    columnColor: "red",
+    columnBackgroundColor: "",
+    columnBold: true,
+    columnItalic: false,
+    columnUnderline: false,
+    columnStrikethrough: false,
+    columnPadding: 0,
+
+    stackColor: "red",
+    stackBackgroundColor: "",
+    stackBold: true,
+    stackItalic: false,
+    stackUnderline: false,
+    stackStrikethrough: false,
+    stackPadding: 0,
+    stackBase: true,
 
     /*fileColor: "",
     fileBackgroundColor: "",
@@ -348,6 +414,19 @@ const webParser = (s, colors, current) => {
     });
 };
 
+function CustomError(message) {
+    const error = new Error(message);
+    if (Error.captureStackTrace) {
+        Error.captureStackTrace(this, CustomError);
+    } else {
+        this.stack = error.stack;
+    }
+}
+
+CustomError.prototype = Object.create(Error.prototype);
+CustomError.prototype.constructor = CustomError;
+
+
 /**
  * @param {Object} options
  * @returns {Object<any, any> | any}
@@ -381,9 +460,9 @@ function Printer(options = {}) {
                 else tmp.push(colors[i][0]);
                 clr.push(tmp.join(";"));
             }
-            console.log(s, ...clr);
-        }
-    } : process.stdout;
+            console.log(s, ...clr); // THIS PART IS ONLY RAN IF IT'S ON WEB! If it's not web: --\
+        } //                                                                                     |
+    } : process.stdout; // <--------------------------------------------------------------------/
     self.tags = {
         pass: {text: "PASS", backgroundColor: "greenBright", textColor: "green"},
         fail: {text: "FAIL", backgroundColor: "redBright", textColor: "redBright"},
@@ -403,12 +482,13 @@ function Printer(options = {}) {
     self._times = {};
     self._counts = {};
     self._group = 0;
+    self._namespace = options.namespace || "";
 
     /// COMPONENTS ///
 
     self.addComponent("date", opts => {
         const date = new Date;
-        const rs = date.toLocaleString("en", {month: "short", day: "numeric"});
+        const rs = date.toLocaleString("en", opts.dateOptions);
         return {result: Printer.paint(rs, componentHelper("date", opts)), plain: rs};
     });
     self.addComponent("tag", opts => {
@@ -435,6 +515,43 @@ function Printer(options = {}) {
         text = text.substring(0, text.length - 1);
         return {
             result: Printer.paint(text, componentHelper("time", opts)), plain: text
+        };
+    });
+    self.addComponent("namespace", opts => {
+        if (!opts.namespace) return {result: "", plain: ""};
+        return {
+            result: Printer.paint(opts.namespace, componentHelper("namespace", opts)) + " ",
+            plain: opts.namespace
+        };
+    });
+    self.addComponent("filename", opts => {
+        let file = (__stack().find(i => i.fileName && i.fileName !== __filename) || {}).fileName;
+        if (opts.filenameBase) file = path.basename(file || "");
+        return {
+            result: Printer.paint(file, componentHelper("filename", opts)),
+            plain: file
+        };
+    });
+    self.addComponent("line", opts => {
+        const line = (__stack().find(i => i.fileName && i.fileName !== __filename) || {}).lineNumber;
+        return {
+            result: Printer.paint(line, componentHelper("line", opts)),
+            plain: line
+        };
+    });
+    self.addComponent("column", opts => {
+        const column = (__stack().find(i => i.fileName && i.fileName !== __filename) || {}).columnNumber;
+        return {
+            result: Printer.paint(column, componentHelper("column", opts)),
+            plain: column
+        };
+    });
+    self.addComponent("stack", opts => {
+        const f = __stack().find(i => i.fileName && i.fileName !== __filename) || {};
+        const t = (opts.stackBase ? path.basename(f.fileName || "") : f.fileName) + ":" + f.lineNumber + ":" + f.columnNumber;
+        return {
+            result: Printer.paint(t, componentHelper("stack", opts)),
+            plain: t
         };
     });
 
@@ -573,6 +690,10 @@ prototype.new = function (self, options) {
 
 prototype.create = function (self, options) {
     return new Printer(options);
+};
+
+prototype.namespace = function (self, namespace) {
+    return self.create({...self.options, namespace});
 };
 
 prototype.addComponent = function (self, name, callback) {
@@ -915,26 +1036,31 @@ prototype.readKey = async function (self, stringify = false, trim = false) {
     return res.toString();
 };
 
-prototype.readCustom = async function (self, options) {
-    if (!self.stdin) return "";
+prototype.readCustom = function (self, options) {
+    if (!self.stdin) return {
+        promise: new Promise(r => r("")),
+        end: () => true
+    };
     if (typeof options !== "object" || Array.isArray(options)) options = {};
     Printer.setDefault(options, {
         onKey: text => self.print(text),
         onBackspace: () => self.backspace(),
         onArrow: () => true,
         onEnd: () => self.print("\n"),
-        onTermination: () => isWeb && process.exit()
+        onTermination: () => !isWeb && process.exit(),
+        timeout: -1
     });
     let cursor = -1;
     let result = "";
     let promCb;
-    let prom = new Promise(r => promCb = r);
+    const promise = new Promise(r => promCb = r);
     self.stdin.setRawMode(true);
     self.stdin.resume();
     let func;
+    let resolved = false;
     self.stdin.on("data", func = buffer => {
         let text = buffer.toString();
-        if (text === "\u0003" && isWeb) process.exit();
+        if (text === "\u0003") return options.onTermination();
         else if (text === "\u0008") {
             result = result.substring(0, cursor) + result.substring(cursor + 1);
             cursor--;
@@ -951,6 +1077,7 @@ prototype.readCustom = async function (self, options) {
             options.onEnd();
             self.stdin.off("data", func);
             promCb(result);
+            resolved = true;
             return;
         } else {
             result = result.substring(0, cursor + 1) + text + result.substring(cursor + 1);
@@ -958,31 +1085,40 @@ prototype.readCustom = async function (self, options) {
         }
         options.onKey(text);
     });
-    return await prom;
+    const th = {
+        promise,
+        end: () => resolved || self.stdin.emit("data", "\n")
+    };
+    if (options.timeout && options.timeout > 0) setTimeout(() => th.end(), options.timeout);
+    return th;
 };
 
 prototype.readPassword = async function (self, options) {
     if (typeof options !== "object" || Array.isArray(options)) options = {};
-    return await self.readCustom({
+    Printer.setDefault(options, {expectPromise: true});
+    const th = self.readCustom({
         onKey: text => self.stdout.write(options.character || "*"),
         ...options
     });
+    if (options.expectPromise) return await th.promise;
+    return th;
 };
 
 prototype.readSelection = async function (self, list = [], options) {
     if (typeof options !== "object" || Array.isArray(options)) options = {};
     if (list.length === 0) return "";
+    Printer.setDefault(options, {expectPromise: true});
     let selected = 0;
     self.print(list[selected]);
-    await self.readCustom({
+    const th = self.readCustom({
         onKey: r => r,
         onBackspace: r => r,
         onArrow: arrow => {
             let old = selected;
-            if (arrow === "up") {
+            if (arrow === "up" || arrow === "left") {
                 selected--;
                 if (selected < 0) selected = list.length - 1;
-            } else if (arrow === "down") {
+            } else if (arrow === "down" || arrow === "right") {
                 selected++;
                 if (selected > list.length - 1) selected = 0;
             } else return;
@@ -990,8 +1126,76 @@ prototype.readSelection = async function (self, list = [], options) {
             self.print(list[selected]);
         }, ...options
     });
-    return selected;
+    th.rawPromise = th.promise;
+    th.promise = new Promise(async r => {
+        await th.rawPromise;
+        r(selected);
+    });
+    if (options.expectPromise) return await th.promise;
+    return th;
 };
+
+prototype.readSelectionListed = async function (self, list = [], options) {
+    if (typeof options !== "object" || Array.isArray(options)) options = {};
+    Printer.setDefault(options, {
+        selectedColor: "black",
+        selectedBackgroundColor: "white",
+        selectedPadding: 0,
+        selectedBold: true,
+        selectedItalic: false,
+        selectedUnderline: false,
+        selectedStrikethrough: false,
+        normalColor: "",
+        normalBackgroundColor: "",
+        normalPadding: 0,
+        normalBold: false,
+        normalItalic: false,
+        normalUnderline: false,
+        normalStrikethrough: false,
+        expectPromise: true
+    });
+    if (list.length === 0) return "";
+    let selected = 0;
+    let typed = "";
+    const update = () => {
+        self.backspace(typed.length);
+        typed = "";
+        let ty = "";
+        for (let i = 0; i < list.length; i++) {
+            typed += list[i];
+            if (selected === i) ty += Printer.paint(list[i], componentHelper("selected", options));
+            else ty += list[i];
+            if (i !== list.length - 1) {
+                typed += " ";
+                ty += " ";
+            }
+        }
+        self.print(ty);
+    };
+    update();
+    const th = self.readCustom({
+        onKey: r => r,
+        onBackspace: r => r,
+        onArrow: arrow => {
+            let old = selected;
+            if (arrow === "up" || arrow === "left") {
+                selected--;
+                if (selected < 0) selected = list.length - 1;
+            } else if (arrow === "down" || arrow === "right") {
+                selected++;
+                if (selected > list.length - 1) selected = 0;
+            } else return;
+            update();
+        }, ...options
+    });
+    th.rawPromise = th.promise;
+    th.promise = new Promise(async r => {
+        await th.rawPromise;
+        r(selected);
+    });
+    if (options.expectPromise) return await th.promise;
+    return th;
+}; // TODO: reading instances where you can stop it? or make it write things?
 
 prototype.parseCSS = function (self, text) {
     return Printer.parseCSS(text);
@@ -1026,7 +1230,8 @@ Printer.paint = (text, options) => {
         italic: false,
         underline: false,
         strikethrough: false,
-        padding: 0
+        padding: 0,
+        ending: true
     });
     if (options.padding > 0) text = " ".repeat(options.padding) + text + " ".repeat(options.padding);
     text = Printer.color(text, options.color);
@@ -1035,6 +1240,9 @@ Printer.paint = (text, options) => {
     if (options.italic) text = Color.italic(text);
     if (options.underline) text = Color.underline(text);
     if (options.strikethrough) text = Color.strikethrough(text);
+    if (!options.ending) text = text.replace("\x1B[39m", "").replace("\x1B[49m", "")
+        .replace("\x1B[22m", "").replace("\x1B[23m", "")
+        .replace("\x1B[24m", "").replace("\x1B[29m", "").replace(" ", "")
     return text;
 };
 
@@ -1049,7 +1257,7 @@ Printer.stringify = any => {
 };
 
 Printer.color = (text, color) => {
-    if (!Color.supportsColor || ["default", "bg" + "default", "none", "bg" + "none", "transparent", "bg" + "transparent", ""].includes(color)) return text;
+    if (["default", "bg" + "default", "none", "bg" + "none", "transparent", "bg" + "transparent", ""].includes(color)) return text;
     const isBg = color[0] === "b" && color[1] === "g";
     let rest = isBg ? color.substring(2) : color;
     rest = {
@@ -1063,19 +1271,28 @@ Printer.color = (text, color) => {
         pink: "magentaBright",
         aqua: "cyanBright"
     }[rest] || rest;
+    const sup = Color.supportsColor.has256;
     if (rest.startsWith("rgb(")) {
+        if (!sup) return text;
         const clr = rest.substring(4, rest.length - 1).split(/[, ]/).filter(i => i).map(i => i * 1);
         return Color[isBg ? "bgRgb" : "rgb"](...clr)(text);
     }
     if (rest.startsWith("hsl(")) {
+        if (!sup) return text;
         const clr = rest.substring(4, rest.length - 1).split(/[, ]/).filter(i => i).map(i => i * 1);
         return Color[isBg ? "bgHsl" : "hsl"](...clr)(text);
     }
     if (rest.startsWith("hsv(")) {
+        if (!sup) return text;
         const clr = rest.substring(4, rest.length - 1).split(/[, ]/).filter(i => i).map(i => i * 1);
         return Color[isBg ? "bgHsv" : "hsv"](...clr)(text);
     }
-    if (rest[0] === "#") return Color[isBg ? "bgHex" : "hex"](rest.substring(1))(text);
+    if (rest[0] === "#") {
+        if (!sup) return text;
+        return Color[isBg ? "bgHex" : "hex"](rest.substring(1))(text);
+    }
+    if (ansiKeys[color] && !Color.supportsColor.hasBasic) return text;
+    if (!ansiKeys[color] && !Color.supportsColor.has256) return text;
     return (Color[color] || (r => r))(text);
 };
 Printer.background = (text, color) => Printer.color(text, "bg" + (color[0] || "").toUpperCase() + (color || "").substring(1));
@@ -1209,10 +1426,9 @@ Printer.applyCSS = styles => {
         italic: styles.font.style.italic,
         underline: styles.textDecoration.line.under,
         strikethrough: styles.textDecoration.line.through,
-        padding: styles.padding
-    }).replace("\x1B[39m", "").replace("\x1B[49m", "")
-        .replace("\x1B[22m", "").replace("\x1B[23m", "")
-        .replace("\x1B[24m", "").replace("\x1B[29m", "").replace(" ", "");
+        padding: styles.padding,
+        ending: false
+    });
 };
 
 Printer.css = text => Printer.applyCSS(Printer.cleanCSS(Printer.parseCSS(text)));
@@ -1228,7 +1444,9 @@ const brackets = prototype.brackets = Printer.brackets = new Printer({
     timeBackgroundColor: "",
     datePadding: 0,
     timePadding: 0,
-    format: opts => Printer.css("color: " + brackets.getTag(opts.tag || "log").color) + "[%date] | [%time] [%tag] > %text" + ClearAll
+    namespaceColor: "",
+    namespaceBackgroundColor: "",
+    format: opts => Printer.css("color: " + brackets.getTag(opts.tag || "log").color) + (opts.namespace ? "[%namespace\b \b] | " : "") + "[%date] | [%time] [%tag] > %text" + ClearAll
 });
 brackets.tags = {
     pass: {text: "PASS", textColor: "green", color: "green"},
