@@ -7,11 +7,11 @@ No dependencies! Just one file!
 [![](https://img.shields.io/badge/Discord-black?style=for-the-badge&logo=discord)](https://discord.gg/emAhrw3mvM)
 [![npm](https://img.shields.io/npm/v/fancy-printer.svg?style=for-the-badge)](https://www.npmjs.com/package/fancy-printer)
 
-# 🤩 Don't forget to star! 🤩
+## [🤩 Don't forget to star the project on GitHub! 🤩](https://github.com/OguzhanUmutlu/fancy-printer)
 
 <!-- TOC -->
 * [🌟 Fancy Printer 🌟](#-fancy-printer-)
-* [🤩 Don't forget to star! 🤩](#-dont-forget-to-star-)
+  * [🤩 Don't forget to star the project on GitHub! 🤩](#-dont-forget-to-star-the-project-on-github--)
 * [📩 Installation 📩](#-installation-)
   * [✨ Fanciness continues on Web ✨](#-fanciness-continues-on-web-)
 * [🔧 Usage 🔧](#-usage-)
@@ -284,28 +284,28 @@ printer.log("Hello, %cthis is red!%c and now it's blue!", "color: red", "color: 
 const {inline} = printer;
 
 (async () => {
-  inline.log("Type something: ");
-  const something = await printer.readLine();
-  printer.warn("You entered: %s", something);
+    inline.log("Type something: ");
+    const something = await printer.readLine();
+    printer.warn("You entered: %s", something);
 
-  inline.log("Press a key: ");
-  const key = await printer.readKey();
-  inline.print(key + "\n");
-  printer.warn("You pressed: %s", key);
+    inline.log("Press a key: ");
+    const key = await printer.readKey();
+    inline.print(key + "\n");
+    printer.warn("You pressed: %s", key);
 
-  inline.log("Enter your password: ");
-  const pass = await printer.readPassword({character: "*"}); // Character is "*" by default.
-  printer.warn("You entered: %s", pass);
+    inline.log("Enter your password: ");
+    const pass = await printer.readPassword({character: "*"}); // Character is "*" by default.
+    printer.warn("You entered: %s", pass);
 
-  const list = ["an apple", "a grape", "a watermelon", "a piano!"];
-  inline.log("Select something: ");
-  const selection = await printer.readSelection(list);
-  printer.warn("You entered: %s", list[selection]);
+    const list = ["an apple", "a grape", "a watermelon", "a piano!"];
+    inline.log("Select something: ");
+    const selection = await printer.readSelection(list);
+    printer.warn("You entered: %s", list[selection]);
 
-  const list2 = ["audi", "ford", "lamborghini", "beans"];
-  inline.log("Select something: ");
-  const selection2 = await printer.readSelectionListed(list2);
-  printer.warn("You entered: %s", list2[selection2]);
+    const list2 = ["audi", "ford", "lamborghini", "beans"];
+    inline.log("Select something: ");
+    const selection2 = await printer.readSelectionListed(list2);
+    printer.warn("You entered: %s", list2[selection2]);
 })();
 ```
 
