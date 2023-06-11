@@ -5,10 +5,13 @@ A fancy logger with a lot of customizations and blazingly fast speed!
 No dependencies! Just one file!
 
 [![](https://img.shields.io/badge/Discord-black?style=for-the-badge&logo=discord)](https://discord.gg/emAhrw3mvM)
-[![npm](https://img.shields.io/npm/v/fancy-printer.svg)](https://www.npmjs.com/package/fancy-printer)
+[![npm](https://img.shields.io/npm/v/fancy-printer.svg?style=for-the-badge)](https://www.npmjs.com/package/fancy-printer)
+
+# 🤩 Don't forget to star! 🤩
 
 <!-- TOC -->
 * [🌟 Fancy Printer 🌟](#-fancy-printer-)
+* [🤩 Don't forget to star! 🤩](#-dont-forget-to-star-)
 * [📩 Installation 📩](#-installation-)
   * [✨ Fanciness continues on Web ✨](#-fanciness-continues-on-web-)
 * [🔧 Usage 🔧](#-usage-)
@@ -112,11 +115,17 @@ printer.tag("test", "Hello, world!");
 ## ✨ Formatting & Using/adding components & Changing the chr ✨
 
 ```js
-printer.setFormat("%date %time %tag %text"); // default
+const DEFAULT_FORMAT = "%namespace%date %time %tag %text"; // this is the default format
+printer.options.namespace = "My namespace"
+// OR
+const newPrinter = printer.namespace("My new namespace!");
+
+printer.options.namespace = "";
+printer.setFormat("%date %time %tag %text");
 printer.info("Hello, world!");
 printer.setFormat("%date %time %tag > %text");
 printer.info("Hello, world!");
-printer.setFormat("%date %time %tag %random %text");
+printer.setFormat("%date %time %tag %2plus2 %text");
 printer.addComponent("2plus2", () => {
     return 2 + 2;
 });
@@ -125,15 +134,10 @@ printer.info("Hello, world!");
 printer.setCharacter("!");
 printer.setFormat("!date !time !tag !2plus2 !text");
 printer.info("Hello, world!");
-```
 
-<!--
-printer.setCharacter("%");
-printer.setFormat("%file:%row:%column %tag %text");
-// or
-printer.setFormat("%stack %tag %text");
+printer.setFormat("!stack [ !filename:!line:!column ] !date !time !tag !2plus2 !text");
 printer.info("Hello, world!");
--->
+```
 
 ![](https://raw.githubusercontent.com/OguzhanUmutlu/fancy-printer/main/screenshots/img_2.png)
 
@@ -210,7 +214,7 @@ printer.makeHashedLoggerFile();
 // OPTIONAL:
 printer.makeHashedLoggerFile({
     folder: "./myFolder/", // Default: logs. This is where the log files will be saved in.
-    radix: 16, // max and default 16. This is the time encoder setting
+    radix: 16, // default 16, max 32. This is the time encoder setting
     divide: 3, // Default: 3. Divides the current timestamp into 10^divide. For example 3 would divide it to 1000 which makes it depend on seconds.
     format: "my log %t.txt" // Default: log-%t.log. The format of the name of the file. %t will be replaced by the time
 });
@@ -280,23 +284,28 @@ printer.log("Hello, %cthis is red!%c and now it's blue!", "color: red", "color: 
 const {inline} = printer;
 
 (async () => {
-    inline.log("Type something: ");
-    const something = await printer.readLine();
-    printer.warn("You entered: %s", something);
+  inline.log("Type something: ");
+  const something = await printer.readLine();
+  printer.warn("You entered: %s", something);
 
-    inline.log("Press a key: ");
-    const key = await printer.readKey();
-    inline.print(key + "\n");
-    printer.warn("You pressed: %s", key);
+  inline.log("Press a key: ");
+  const key = await printer.readKey();
+  inline.print(key + "\n");
+  printer.warn("You pressed: %s", key);
 
-    inline.log("Enter your password: ");
-    const pass = await printer.readPassword({character: "*"}); // Character is "*" by default.
-    printer.warn("You entered: %s", pass);
+  inline.log("Enter your password: ");
+  const pass = await printer.readPassword({character: "*"}); // Character is "*" by default.
+  printer.warn("You entered: %s", pass);
 
-    const list = ["an apple", "a grape", "a watermelon", "a piano!"];
-    inline.log("Select something: ");
-    const selection = await printer.readSelection(list);
-    printer.warn("You entered: %s", list[selection]);
+  const list = ["an apple", "a grape", "a watermelon", "a piano!"];
+  inline.log("Select something: ");
+  const selection = await printer.readSelection(list);
+  printer.warn("You entered: %s", list[selection]);
+
+  const list2 = ["audi", "ford", "lamborghini", "beans"];
+  inline.log("Select something: ");
+  const selection2 = await printer.readSelectionListed(list2);
+  printer.warn("You entered: %s", list2[selection2]);
 })();
 ```
 

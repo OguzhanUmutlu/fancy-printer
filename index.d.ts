@@ -12,6 +12,7 @@ type LogOptions = {
     substitutionsEnabled?: boolean,
     componentsEnabled?: boolean,
     newLine?: boolean,
+    namespace?: string,
 
     defaultColor?: Color,
     defaultBackgroundColor?: Color,
@@ -63,7 +64,49 @@ type LogOptions = {
     groupColor?: Color,
     groupBackgroundColor?: Color,
 
-    readonly tag: string
+    namespaceColor?: string,
+    namespaceBackgroundColor?: string,
+    namespaceBold?: boolean,
+    namespaceItalic?: boolean,
+    namespaceUnderline?: boolean,
+    namespaceStrikethrough?: boolean,
+    namespacePadding?: number,
+
+    filenameColor?: string,
+    filenameBackgroundColor?: string,
+    filenameBold?: boolean,
+    filenameItalic?: boolean,
+    filenameUnderline?: boolean,
+    filenameStrikethrough?: boolean,
+    filenamePadding?: number,
+    filenameBase?: boolean,
+
+    lineColor?: string,
+    lineBackgroundColor?: string,
+    lineBold?: boolean,
+    lineItalic?: boolean,
+    lineUnderline?: boolean,
+    lineStrikethrough?: boolean,
+    linePadding?: number,
+
+    columnColor?: string,
+    columnBackgroundColor?: string,
+    columnBold?: boolean,
+    columnItalic?: boolean,
+    columnUnderline?: boolean,
+    columnStrikethrough?: boolean,
+    columnPadding?: number,
+
+    stackColor?: string,
+    stackBackgroundColor?: string,
+    stackBold?: boolean,
+    stackItalic?: boolean,
+    stackUnderline?: boolean,
+    stackStrikethrough?: boolean,
+    stackPadding?: number,
+    stackBase?: boolean,
+
+    readonly tag?: string
 } | Record<any, any>;
 type ComponentFunction = (options?: LogOptions) => ({
     result: any,
@@ -76,7 +119,8 @@ type PaintOptions = {
     italic?: boolean,
     underline?: boolean,
     strikethrough?: boolean,
-    padding?: number
+    padding?: number,
+    ending?: boolean
 };
 type LoggerOptions = {
     folder?: string, radix?: number, divide?: number, format?: string
@@ -93,11 +137,13 @@ type TagComponent = {
 };
 type TagName = "pass" | "fail" | "error" | "warn" | "info" | "debug" | "notice" | "log" | "ready" | string;
 type SubstitutionFunction = (text: string, responses: { Cancel: {}, Color: { value: string } }) => string | Object;
-type ReadOptions = {
+type ReadOptions<T> = {
     onKey?: (key: string) => void | Function | any,
     onBackspace?: () => void | Function | any,
     onArrow?: (key: "up" | "down" | "right" | "left", text: string) => void | Function | any,
-    onTermination?: () => void | Function | any
+    onTermination?: () => void | Function | any,
+    timeout?: number | -1,
+    expectPromise: T
 } | Record<any, any>;
 type Styles = {
     font: {
@@ -120,6 +166,26 @@ type Styles = {
     },
     padding: number,
     //margin: number,
+};
+type ListSelectionOptions = {
+    selectedColor: string,
+    selectedBackgroundColor: string,
+    selectedPadding: number,
+    selectedBold: boolean,
+    selectedItalic: boolean,
+    selectedUnderline: boolean,
+    selectedStrikethrough: boolean,
+    normalColor: string,
+    normalBackgroundColor: string,
+    normalPadding: number,
+    normalBold: boolean,
+    normalItalic: boolean,
+    normalUnderline: boolean,
+    normalStrikethrough: boolean
+};
+type ReadResponse<T> = {
+    promise: Promise<T>,
+    end: () => void
 };
 
 declare class FancyPrinter {
@@ -319,14 +385,20 @@ declare class FancyPrinter {
     readKey(stringify: false): Promise<Buffer>;
     readKey(): Promise<string>;
 
-    readCustom(options: ReadOptions): Promise<string>;
-    readCustom(): Promise<string>;
+    readCustom(options: ReadOptions<boolean>): ReadResponse<string>;
+    readCustom(): ReadResponse<string>;
 
-    readPassword(options: ReadOptions & { character: string }): Promise<string>;
+    readPassword(options: ReadOptions<true> & { character: string }): Promise<string>;
+    readPassword(options: ReadOptions<false> & { character: string }): ReadResponse<string>;
     readPassword(): Promise<string>;
 
-    readSelection(list: string[], options: ReadOptions): Promise<string>;
-    readSelection(list: string[]): Promise<string>;
+    readSelection(list: string[], options: ReadOptions<true>): Promise<number>;
+    readSelection(list: string[], options: ReadOptions<false>): ReadResponse<number>;
+    readSelection(list: string[]): Promise<number>;
+
+    readSelectionListed(list: string[], options: ReadOptions<true> & ListSelectionOptions): Promise<number>;
+    readSelectionListed(list: string[], options: ReadOptions<false> & ListSelectionOptions): ReadResponse<number>;
+    readSelectionListed(list: string[]): Promise<number>;
 
     static parseCSS(text: string): Object;
 
@@ -345,6 +417,8 @@ declare class FancyPrinter {
     css(text: string): string;
 
     setOptions(options: LogOptions): FancyPrinter;
+
+    namespace(namespace: string): FancyPrinter;
 }
 
 declare global {
