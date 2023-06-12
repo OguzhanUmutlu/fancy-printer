@@ -227,6 +227,7 @@ const DEFAULT_OPTIONS = {
     componentsEnabled: true,
     newLine: true,
     namespace: "",
+    colorEnabled: true,
 
     defaultColor: "",
     defaultBackgroundColor: "",
@@ -831,8 +832,10 @@ prototype.log = function (self, ...texts) {
         const l = line;
         line = Printer.color(line, options.defaultColor);
         line = Printer.color(line, options.defaultBackgroundColor);
-        self[options.newLine ? "println" : "print"](Printer.paint(" ".repeat(self._group), componentHelper("group", options)) + colored.replaceAll(self.chr + "text", line));
-        self.streams.forEach(stream => stream.write(" ".repeat(self._group) + plain.replaceAll(self.chr + "text", l).replaceAll(/\x1B\[\d+m/g, "") + (options.newLine ? "\n" : "")));
+        const plainText = " ".repeat(self._group) + plain.replaceAll(self.chr + "text", l).replaceAll(/\x1B\[\d+m/g, "") + (options.newLine ? "\n" : "");
+        if (options.colorEnabled) self[options.newLine ? "println" : "print"](Printer.paint(" ".repeat(self._group), componentHelper("group", options)) + colored.replaceAll(self.chr + "text", line));
+        else self[options.newLine ? "println" : "print"](plainText);
+        self.streams.forEach(stream => stream.write(plainText));
     });
     return self;
 };

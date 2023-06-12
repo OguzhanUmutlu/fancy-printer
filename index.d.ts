@@ -13,6 +13,7 @@ type LogOptions = {
     componentsEnabled?: boolean,
     newLine?: boolean,
     namespace?: string,
+    colorEnabled?: boolean,
 
     defaultColor?: Color,
     defaultBackgroundColor?: Color,
