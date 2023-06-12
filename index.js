@@ -678,9 +678,9 @@ prototype.makeHashedLoggerFile = function (self, options) {
 
 prototype.makeGlobal = function (self, _console = false) {
     const gl = isWeb ? window : global;
-    if (_console) gl.console = Printer.static;
-    gl.Printer = Printer;
-    gl.printer = Printer.static;
+    if (_console) gl.console = self;
+    gl.Printer = self;
+    gl.printer = self;
     return self;
 };
 
