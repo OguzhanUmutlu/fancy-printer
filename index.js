@@ -101,7 +101,7 @@ const conv = {
         if (a.startsWith("#")) a = a.substring(1);
         if (a.length === 3) a = a.split("").map(i => i + i).join("");
         if (a.length !== 6) return Color.rgb(0, 0, 0);
-        const num = parseInt(a, 16);
+        const num = Number.parseInt(a, 16);
         return [(num >> 16) & 0xFF, (num >> 8) & 0xFF, num & 0xFF];
     },
     hsl: (a, b, c) => {
@@ -153,7 +153,7 @@ const conv = {
 };
 
 const Color = {
-    supportsColor: {hasBasic: true, has256: true, has16m: true}, // todo
+    supportsColor: {hasBasic: true, has256: true, has16m: true},
     rgb: (r, g, b) => (t => `\x1B[38;2;${r};${g};${b}m${t}${isWeb ? "\x1B[39m" : "\x1B[39m"}`),
     hex: a => Color.rgb(...conv.hex(a)),
     hsl: (a, b, c) => Color.rgb(...conv.hsl(a, b, c)),
@@ -163,6 +163,14 @@ const Color = {
     bgHsl: (a, b, c) => Color.bgRgb(...conv.hsl(a, b, c)),
     bgHsv: (a, b, c) => Color.bgRgb(...conv.hsv(a, b, c))
 };
+if (isWeb) {
+    const ver = Number.parseInt((/(Chrome|Chromium)\/(?<chromeVersion>\d+)\./.exec(navigator.userAgent) || {groups: {chromeVersion: -1}}).groups.chromeVersion, 10);
+    if (ver < 69) Color.supportsColor = {
+        hasBasic: false,
+        has256: false,
+        has16m: false
+    };
+} else Color.supportsColor = require("./vendor/supports-color/index.js").stdout;
 Object.keys(knownColors).forEach(k => {
     Color[k] = Color.rgb(...knownColors[k]);
     Color["bg" + k[0].toUpperCase() + k.substring(1)] = Color.bgRgb(...knownColors[k]);
@@ -1198,7 +1206,7 @@ prototype.readSelectionListed = async function (self, list = [], options) {
     });
     if (options.expectPromise) return await th.promise;
     return th;
-}; // TODO: reading instances where you can stop it? or make it write things?
+};
 
 prototype.parseCSS = function (self, text) {
     return Printer.parseCSS(text);
@@ -1274,7 +1282,7 @@ Printer.color = (text, color) => {
         pink: "magentaBright",
         aqua: "cyanBright"
     }[rest] || rest;
-    const sup = Color.supportsColor.has256;
+    const sup = Color.supportsColor.has16m;
     if (rest.startsWith("rgb(")) {
         if (!sup) return text;
         const clr = rest.substring(4, rest.length - 1).split(/[, ]/).filter(i => i).map(i => i * 1);
@@ -1295,7 +1303,7 @@ Printer.color = (text, color) => {
         return Color[isBg ? "bgHex" : "hex"](rest.substring(1))(text);
     }
     if (ansiKeys[color] && !Color.supportsColor.hasBasic) return text;
-    if (!ansiKeys[color] && !Color.supportsColor.has256) return text;
+    if (!ansiKeys[color] && !Color.supportsColor.has16m) return text;
     return (Color[color] || (r => r))(text);
 };
 Printer.background = (text, color) => Printer.color(text, "bg" + (color[0] || "").toUpperCase() + (color || "").substring(1));
