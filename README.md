@@ -135,7 +135,7 @@ printer.setCharacter("!");
 printer.setFormat("!date !time !tag !2plus2 !text");
 printer.info("Hello, world!");
 
-printer.setFormat("!stack [ !filename:!line:!column ] !date !time !tag !2plus2 !text");
+printer.setFormat("!stack or just [ !filename:!line:!column ] !date !time !tag !2plus2 !text");
 printer.info("Hello, world!");
 ```
 
