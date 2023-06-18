@@ -197,7 +197,9 @@ const componentHelper = (name, opts) => ({
     bold: cH(opts, name, "Bold"),
     italic: cH(opts, name, "Italic"),
     underline: cH(opts, name, "Underline"),
-    strikethrough: cH(opts, name, "Strikethrough")
+    strikethrough: cH(opts, name, "Strikethrough"),
+    alwaysRGB: opts.alwaysRGB,
+    paletteName: opts.paletteName
 });
 
 function __stack() {
@@ -209,7 +211,7 @@ function __stack() {
     };
     const err = new Error;
     Error.captureStackTrace(err, arguments.callee);
-    const stack = err.stack;
+    const stack = [...err.stack];
     Error.prepareStackTrace = orig;
     Error.stackTraceLimit = oldLimit;
     return stack.map(i => ({
@@ -229,6 +231,39 @@ function __stack() {
     }));
 }
 
+const COLOR_PALETTES = {
+    JetBrains: {
+        black: [0, 0, 0],
+        red: [119, 46, 44],
+        green: [57, 81, 31],
+        yellow: [92, 79, 23],
+        blue: [36, 89, 128],
+        magenta: [92, 64, 105],
+        cyan: [21, 79, 79],
+        white: [97, 97, 97],
+        blackBright: [66, 66, 66],
+        redBright: [184, 36, 33],
+        greenBright: [69, 133, 0],
+        yellowBright: [168, 123, 0],
+        blueBright: [23, 120, 189],
+        magentaBright: [178, 71, 178],
+        cyanBright: [0, 110, 110],
+        whiteBright: [255, 255, 255]
+    }
+};
+COLOR_PALETTES.default = COLOR_PALETTES.JetBrains;
+const makeWebPalette = palette => {
+    const obj = {};
+    Object.keys(palette).forEach(l => {
+        const v = "rgb(" + palette[l].join(",") + ")";
+        obj[l] = ["color: " + v, v];
+        obj["bg" + l[0].toUpperCase() + l.substring(1)] = ["background-color: " + v, null, v];
+    });
+    return obj;
+};
+const WEB_PALETTES = {};
+Object.keys(COLOR_PALETTES).forEach(k => WEB_PALETTES[k] = makeWebPalette(COLOR_PALETTES[k]));
+
 const DEFAULT_OPTIONS = {
     format: "%namespace%date %time %tag %text",
     substitutionsEnabled: true,
@@ -239,6 +274,8 @@ const DEFAULT_OPTIONS = {
     stdout: null,
     stdin: null,
     htmlOut: null,
+    alwaysRGB: false,
+    paletteName: "default",
 
     defaultColor: "",
     defaultBackgroundColor: "",
@@ -275,6 +312,20 @@ const DEFAULT_OPTIONS = {
     timeSecond: true,
     timeMillisecond: false,
     timeMillisecondLength: 3,
+
+    uptimeColor: "",
+    uptimeBackgroundColor: "cyan",
+    uptimeBold: true,
+    uptimeItalic: false,
+    uptimeUnderline: false,
+    uptimeStrikethrough: false,
+    uptimePadding: 1,
+    uptimeDate: false,
+    uptimeHour: true,
+    uptimeMinute: true,
+    uptimeSecond: true,
+    uptimeMillisecond: true,
+    uptimeMillisecondLength: 2,
 
     groupColor: "",
     groupBackgroundColor: "",
@@ -353,7 +404,7 @@ const DEFAULT_OPTIONS = {
     stackStrikethrough: false,
     stackPadding: 0*/
 };
-const webParser = (s, colors, current) => {
+const webParser = (s, colors, current, palette) => {
     return s.replaceAll(/(\x1B\[38;2;\d{1,3};\d{1,3};\d{1,3}m)|(\x1B\[48;2;\d{1,3};\d{1,3};\d{1,3}m)|(\x1B\[99;\d+m)|(\x1B\[39m)/g, m => {
         const s = m.split(";")[0];
         if (s === "\x1B[38") {
@@ -381,42 +432,7 @@ const webParser = (s, colors, current) => {
                 inverse: ["color: " + (current[1] || "auto") + "; background-color: " + (current[0] || "auto"), current[0], current[1]],
                 hidden: ["opacity: 0"],
                 strikethrough: ["text-decoration: line-through"],
-
-                black: ["color: #000000", "#000000"],
-                red: ["color: #772e2c", "#772e2c"],
-                green: ["color: #39511f", "#39511f"],
-                yellow: ["color: #5c4f17", "#5c4f17"],
-                blue: ["color: #245980", "#245980"],
-                magenta: ["color: #5c4069", "#5c4069"],
-                cyan: ["color: #154f4f", "#154f4f"],
-                white: ["color: #616161", "#616161"],
-
-                blackBright: ["color: #424242", "#424242"],
-                redBright: ["color: #b82421", "#b82421"],
-                greenBright: ["color: #458500", "#458500"],
-                yellowBright: ["color: #a87b00", "#a87b00"],
-                blueBright: ["color: #1778bd", "#1778bd"],
-                magentaBright: ["color: #b247b2", "#b247b2"],
-                cyanBright: ["color: #006e6e", "#006e6e"],
-                whiteBright: ["color: #ffffff", "#ffffff"],
-
-                bgBlack: ["background-color: #000000", null, "#000000"],
-                bgRed: ["background-color: #772e2c", null, "#772e2c"],
-                bgGreen: ["background-color: #39511f", null, "#39511f"],
-                bgYellow: ["background-color: #5c4f17", null, "#5c4f17"],
-                bgBlue: ["background-color: #245980", null, "#245980"],
-                bgMagenta: ["background-color: #5c4069", null, "#5c4069"],
-                bgCyan: ["background-color: #154f4f", null, "#154f4f"],
-                bgWhite: ["background-color: #616161", null, "#616161"],
-
-                bgBlackBright: ["background-color: #424242", null, "#424242"],
-                bgRedBright: ["background-color: #b82421", null, "#b82421"],
-                bgGreenBright: ["background-color: #458500", null, "#458500"],
-                bgYellowBright: ["background-color: #a87b00", null, "#a87b00"],
-                bgBlueBright: ["background-color: #1778bd", null, "#1778bd"],
-                bgMagentaBright: ["background-color: #b247b2", null, "#b247b2"],
-                bgCyanBright: ["background-color: #006e6e", null, "#006e6e"],
-                bgWhiteBright: ["background-color: #ffffff", null, "#ffffff"]
+                ...WEB_PALETTES[palette]
             }[m];
             current[0] = pushing[1] || current[0];
             current[1] = pushing[2] || current[1];
@@ -438,1059 +454,1117 @@ function CustomError(message) {
 CustomError.prototype = Object.create(Error.prototype);
 CustomError.prototype.constructor = CustomError;
 
-/**
- * @param {Object} options
- * @returns {Object<any, any> | any}
- * @constructor
- */
-function Printer(options = {}) {
-    const self = {};
-    if (typeof options !== "object" || Array.isArray(options)) options = {};
-    Printer.setDefault(options, Printer.DEFAULT_OPTIONS);
-    self.options = options;
-    self.Printer = Printer;
-    const prototypeNames = Object.keys(prototype);
-    for (let i = 0; i < prototypeNames.length; i++) {
-        const name = prototypeNames[i];
-        const fn = prototype[name];
-        self[name] = function (...args) {
-            return fn(self, ...args);
+class Printer {
+    constructor(options = {}) {
+        options = Printer.setDefault(options, Printer.DEFAULT_OPTIONS);
+        this.options = options;
+        this.Printer = Printer;
+        this._periodicOptions = null;
+        this.stdin = options.stdin || (isWeb ? null : (process.stdin || process.openStdin()));
+        this.stdout = options.stdout || (isWeb ? Printer.DEFAULT_OUTPUTS.web(this) : Printer.DEFAULT_OUTPUTS.terminal(this));
+        this.tags = {
+            pass: {text: "PASS", backgroundColor: "greenBright", textColor: "green"},
+            fail: {text: "FAIL", backgroundColor: "redBright", textColor: "redBright"},
+            error: {text: "ERR!", backgroundColor: "red", textColor: "red"},
+            warn: {text: "WARN", backgroundColor: "yellow", textColor: "yellow"},
+            info: {text: "INFO", backgroundColor: "blueBright", textColor: "blue"},
+            debug: {text: "DEBUG", backgroundColor: "gray", textColor: "gray"},
+            notice: {text: "NOTICE", backgroundColor: "cyanBright", textColor: "cyan"},
+            log: {text: "LOG", backgroundColor: "gray", textColor: "white"},
+            assert: {text: "ASSERT", backgroundColor: "white", color: "black", textColor: "gray"},
+            ready: {text: "READY", backgroundColor: "magenta", textColor: "magenta"}
         };
-    }
-    self._periodicOptions = null;
-    self.stdin = options.stdin || (isWeb ? null : (process.stdin || process.openStdin()));
-    self.stdout = options.stdout || (isWeb ? Printer.DEFAULT_OUTPUTS.web(self) : Printer.DEFAULT_OUTPUTS.terminal(self));
-    self.tags = {
-        pass: {text: "PASS", backgroundColor: "greenBright", textColor: "green"},
-        fail: {text: "FAIL", backgroundColor: "redBright", textColor: "redBright"},
-        error: {text: "ERR!", backgroundColor: "red", textColor: "red"},
-        warn: {text: "WARN", backgroundColor: "yellow", textColor: "yellow"},
-        info: {text: "INFO", backgroundColor: "blueBright", textColor: "blue"},
-        debug: {text: "DEBUG", backgroundColor: "gray", textColor: "gray"},
-        notice: {text: "NOTICE", backgroundColor: "cyanBright", textColor: "cyan"},
-        log: {text: "LOG", backgroundColor: "gray", textColor: "white"},
-        assert: {text: "ASSERT", backgroundColor: "white", color: "black", textColor: "gray"},
-        ready: {text: "READY", backgroundColor: "magenta", textColor: "magenta"}
-    };
-    self.streams = new Map;
-    self.chr = "%";
-    self.components = {};
-    self.substitutions = {};
-    self._times = {};
-    self._counts = {};
-    self._group = 0;
-    self._namespace = options.namespace || "";
+        this.streams = new Map;
+        this.chr = "%";
+        this.components = {};
+        this.substitutions = {};
+        this._times = {};
+        this._counts = {};
+        this._group = 0;
+        this._namespace = options.namespace || "";
 
-    /// COMPONENTS ///
+        /// COMPONENTS ///
 
-    self.addComponent("date", opts => {
-        const date = new Date;
-        const rs = date.toLocaleString("en", opts.dateOptions);
-        return {result: Printer.paint(rs, componentHelper("date", opts)), plain: rs};
-    });
-    self.addComponent("tag", opts => {
-        const tag = self.tags[opts.tag || ""] || self.tags[(opts.tag || "").toLowerCase()] || self.tags.log;
-        opts.defaultColor = /*opts.defaultColor || */tag.textColor;
-        const txt = typeof tag.text === "function" ? tag.text() : tag.text;
-        const gotOpts = componentHelper("tag", opts);
-        return {
-            result: Printer.paint(txt, {
-                ...gotOpts,
-                color: gotOpts.color || fnCheck(tag.color),
-                backgroundColor: fnCheck(tag.backgroundColor)
-            }), plain: txt
-        };
-    });
-    self.addComponent("time", opts => {
-        const date = new Date;
-        const l = [["Date", "getDate"], ["Hour", "getHours"], ["Minute", "getMinutes"], ["Second", "getSeconds"], ["Millisecond", "getMilliseconds", opts.timeMillisecondLength]];
-        let text = "";
-        for (let i = 0; i < l.length; i++) {
-            const k = l[i];
-            if (opts["time" + k[0]]) text += date[k[1]]().toString().padStart(k[2] || 2, "0").substring(0, k[2] || 2) + (k[0] === "Second" ? "." : ":");
-        }
-        text = text.substring(0, text.length - 1);
-        return {
-            result: Printer.paint(text, componentHelper("time", opts)), plain: text
-        };
-    });
-    self.addComponent("namespace", opts => {
-        if (!opts.namespace) return {result: "", plain: ""};
-        return {
-            result: Printer.paint(opts.namespace, componentHelper("namespace", opts)) + " ",
-            plain: opts.namespace
-        };
-    });
-    self.addComponent("filename", opts => {
-        let file = (__stack().find(i => i.fileName && i.fileName !== __filename) || {}).fileName;
-        if (opts.filenameBase) file = path.basename(file || "");
-        return {
-            result: Printer.paint(file, componentHelper("filename", opts)),
-            plain: file
-        };
-    });
-    self.addComponent("line", opts => {
-        const line = (__stack().find(i => i.fileName && i.fileName !== __filename) || {}).lineNumber;
-        return {
-            result: Printer.paint(line, componentHelper("line", opts)),
-            plain: line
-        };
-    });
-    self.addComponent("column", opts => {
-        const column = (__stack().find(i => i.fileName && i.fileName !== __filename) || {}).columnNumber;
-        return {
-            result: Printer.paint(column, componentHelper("column", opts)),
-            plain: column
-        };
-    });
-    self.addComponent("stack", opts => {
-        const f = __stack().find(i => i.fileName && i.fileName !== __filename) || {};
-        const t = (opts.stackBase ? path.basename(f.fileName || "") : f.fileName) + ":" + f.lineNumber + ":" + f.columnNumber;
-        return {
-            result: Printer.paint(t, componentHelper("stack", opts)),
-            plain: t
-        };
-    });
-
-    /// SUBSTITUTIONS ///
-
-    self.addSubstitution("v", s => Printer.stringify(s));
-    const objectSub = (s, {Cancel}) => {
-        const type = typeof s;
-        if (type !== "object" && type !== "function") return Cancel;
-        return Printer.stringify(s);
-    };
-    self.addSubstitution("o", objectSub);
-    self.addSubstitution("O", objectSub);
-    self.addSubstitution("s", (s, {Cancel}) => {
-        if (typeof s !== "string") return Cancel;
-        return s;
-    });
-    self.addSubstitution("j", (s, {Cancel}) => {
-        if (typeof s !== "object" || s.constructor !== Object) return Cancel;
-        try {
-            return JSON.stringify(s);
-        } catch (e) {
-            return Cancel;
-        }
-    });
-    const integerSub = (s, Cancel) => {
-        if (typeof s !== "number") return Cancel;
-        return ((Math.sign(s) * Math.floor(Math.abs(s)))).toString();
-    };
-    self.addSubstitution("i", integerSub);
-    self.addSubstitution("d", integerSub);
-    self.addSubstitution("f", (s, Cancel) => {
-        if (typeof s !== "number") return Cancel;
-        return s.toString();
-    });
-    self.addSubstitution("c", (s, {Cancel, Color}) => {
-        if (typeof s !== "string") return Cancel;
-        Color.value = printer.css(s);
-        return Color;
-    });
-    return self;
-}
-
-/*** @type {Object<string, (self: Printer | FancyPrinter | Object<any, any>, ...a: (any | Object<any, any | Object<any, any>>)[]) => any>} */
-const prototype = {};
-
-prototype.addFile = function (self, file) {
-    if (isWeb) throw new Error("addFile() method cannot be used on web.");
-    self.streams.set(file, fs.createWriteStream(file, {flags: "a"}));
-    return self;
-};
-
-prototype.removeFile = function (self, file) {
-    self.streams.delete(file);
-    return self;
-};
-
-prototype.makeLoggerFile = function (self, options) {
-    if (isWeb) throw new Error("makeLoggerFile() method cannot be used on web.");
-    if (typeof options !== "object" || Array.isArray(options)) options = {};
-    Printer.setDefault(options, {
-        folder: "./logs", format: "log-" + self.chr + "DD-" + self.chr + "MM-" + self.chr + "YYYY.log",
-        month: "long", day: "long"
-    });
-    self._periodicOptions = options;
-    if (self.streams.get("!periodic")) return;
-    let sl;
-    self.streams.set("!periodic", sl = {
-        write: content => {
-            const options = self._periodicOptions;
-            if (!fs.existsSync(options.folder)) fs.mkdirSync(options.folder);
-            const d = new Date;
-            const day = d.getDate();
-            const month = d.getMonth() + 1;
-            const year = d.getFullYear();
-            const hours = d.getHours();
-            const minutes = d.getMinutes();
-            const seconds = d.getSeconds();
-            const ms = d.getMilliseconds();
+        this.addComponent("date", opts => {
             const date = new Date;
-            const list = [
-                ["date", date.toLocaleString("en", {weekday: options.day}), true],
-                ["month", date.toLocaleString("en", {month: options.month}), true],
-                ["D", day],
-                ["M", month],
-                ["Y", year],
-                ["h", hours],
-                ["m", minutes],
-                ["s", seconds],
-                ["S", ms]
-            ];
-            const formatted = list.reduce((a, b) => a.replaceAll(new RegExp("\\" + self.chr + b[0] + (b[2] ? "" : "+"), "g"), str => {
-                if (b[2]) return b[1];
-                const len = str.length - 1;
-                str = b[1].toString().padStart(len, "0");
-                if (str.length > len) str = str.substring(str.length - len);
-                return str;
-            }), fnCheck(options.format, options));
-            const file = path.join(options.folder, formatted);
-            if (!sl._streams.has(file)) {
-                if (sl._lastStream) sl._lastStream.close();
-                fs.mkdirSync(path.dirname(file), {recursive: true});
-                sl._streams.set(file, sl._lastStream = fs.createWriteStream(file, {flags: "a"}));
-            }
-            sl._streams.get(file).write(content);
-        },
-        _lastStream: null,
-        _streams: new Map
-    });
-    return self;
-};
-
-prototype.makeHashedLoggerFile = function (self, options) {
-    if (isWeb) throw new Error("makeHashedLoggerFile() method cannot be used on web.");
-    if (typeof options !== "object" || Array.isArray(options)) options = {};
-    Printer.setDefault(options, {
-        folder: "./logs", radix: 16, divide: 3, format: "log-" + self.chr + "t.log"
-    });
-    if (!fs.existsSync(options.folder)) fs.mkdirSync(options.folder);
-    const file = path.join(options.folder, fnCheck(options.format, options).replaceAll(self.chr + "t", Math.floor(Date.now() / (10 ** options.divide)).toString(options.radix)));
-    self.addFile(file);
-    return self;
-};
-
-prototype.makeGlobal = function (self, _console = false) {
-    const gl = isWeb ? window : global;
-    if (_console) gl.console = self;
-    gl.Printer = self;
-    gl.printer = self;
-    return self;
-};
-
-prototype.new = function (self, options) {
-    return new Printer(options);
-};
-
-prototype.create = function (self, options) {
-    return new Printer(options);
-};
-
-prototype.namespace = function (self, namespace) {
-    return self.create({...self.options, namespace});
-};
-
-prototype.addComponent = function (self, name, callback) {
-    self.components[name] = callback;
-    return self;
-};
-
-prototype.removeComponent = function (self, name) {
-    delete self.components[name];
-    return self;
-};
-
-prototype.getComponents = function (self) {
-    return self.components;
-};
-
-prototype.getComponent = function (self, name) {
-    return self.components[name];
-};
-
-prototype.addSubstitution = function (self, character, run) {
-    self.substitutions[character] = run;
-    return self;
-};
-
-prototype.removeSubstitution = function (self, character) {
-    delete self.substitutions[character];
-    return self;
-};
-
-prototype.getSubstitution = function (self, character) {
-    return self.substitutions[character];
-};
-
-prototype.getSubstitutions = function (self) {
-    return self.substitutions;
-};
-
-prototype.addTag = function (self, key, text, color, backgroundColor, textColor = "", textBackgroundColor = "") {
-    self.tags[key] = {text, color, backgroundColor, textColor, textBackgroundColor};
-    return self;
-};
-
-prototype.removeTag = function (self, key) {
-    delete self.tags[key];
-    return self;
-};
-
-prototype.getTags = function (self) {
-    return self.tags;
-};
-
-prototype.getTag = function (self, key) {
-    return self.tags[key];
-};
-
-prototype.setFormat = function (self, format) {
-    self.options.format = format;
-    return self;
-};
-
-prototype.getFormat = function (self) {
-    return self.options.format;
-};
-
-prototype.setCharacter = function (self, character) {
-    self.chr = character;
-    return self;
-};
-
-prototype.getCharacter = function (self) {
-    return self.chr;
-};
-
-prototype.println = function (self, text) {
-    if (!self.stdout) return self;
-    self.stdout.write(Printer.stringify(text) + "\n");
-    return self;
-};
-
-prototype.printLine = function (self, text) {
-    return self.println(text);
-};
-
-prototype.print = function (self, text) {
-    if (!self.stdout) return self;
-    self.stdout.write(Printer.stringify(text));
-    return self;
-};
-
-prototype.backspace = function (self, amount = 1) {
-    if (!self.stdout) return self;
-    self.stdout.write("\b \b".repeat(amount));
-    return self;
-};
-
-prototype.substitute = function (self, ...texts) {
-    return Printer.substitute(self.substitutions, self.chr, ...texts);
-};
-
-prototype.log = function (self, ...texts) {
-    const options = self.options;
-    let text = "";
-    if (self.options.substitutionsEnabled) {
-        text = self.substitute(...texts);
-    } else {
-        for (let i = 0; i < texts.length; i++) {
-            let t = Printer.stringify(texts[i]);
-            text += t;
-            if (i !== texts.length - 1) text += " ";
-        }
-    }
-    text += ClearAll;
-    const lines = Printer.stringify(text).split("\n");
-    let comp = {};
-    let formatted = options.format;
-    let colored = formatted;
-    let plain = formatted;
-    if (options.componentsEnabled && Object.keys(self.components).length > 0) {
-        const reg = `\\${self.chr}[a-zA-Z]+`;
-        const spl = fnCheck(options.format, options).split(new RegExp("(" + reg + ")", "g"));
-        formatted = spl.filter(i => i).map(i => {
-            if (!new RegExp("^" + reg + "$").test(i.toString())) return i;
-            i = i.substring(1);
-            if (!self.components[i]) return self.chr + i;
-            i = comp[i] || self.components[i](options);
-            if (typeof i === "string" || typeof i === "number") return i.toString();
-            if (typeof i !== "object") throw new Error("Expected the component to throw string, number or an object, got: " + typeof i);
-            return i;
+            const rs = date.toLocaleString("en", opts.dateOptions);
+            return {result: Printer.paint(rs, componentHelper("date", opts)), plain: rs};
         });
-        colored = formatted.map(i => typeof i === "string" ? i : i.result).join("");
-        plain = formatted.map(i => typeof i === "string" ? i : i.plain).join("");
-    }
-    lines.forEach(line => {
-        const l = line;
-        line = Printer.color(line, options.defaultColor);
-        line = Printer.color(line, options.defaultBackgroundColor);
-        const plainText = " ".repeat(self._group) + plain.replaceAll(self.chr + "text", l).replaceAll(/\x1B\[\d+m/g, "") + (options.newLine ? "\n" : "");
-        if (options.stylingEnabled) self[options.newLine ? "println" : "print"](Printer.paint(" ".repeat(self._group), componentHelper("group", options)) + colored.replaceAll(self.chr + "text", line));
-        else self[options.newLine ? "println" : "print"](plainText);
-        self.streams.forEach(stream => stream.write(plainText));
-    });
-    return self;
-};
-
-prototype.tag = function (self, tag, ...texts) {
-    const {tag: old} = self.options;
-    const {defaultColor, defaultBackgroundColor} = self.options;
-    // noinspection JSConstantReassignment
-    self.options.tag = tag;
-    self.log(...texts);
-    // noinspection JSConstantReassignment
-    self.options.tag = old;
-    self.options.defaultColor = defaultColor;
-    self.options.defaultBackgroundColor = defaultBackgroundColor;
-    return self;
-};
-
-prototype.pass = function (self, ...texts) {
-    return self.tag("pass", ...texts);
-};
-
-prototype.fail = function (self, ...texts) {
-    return self.tag("fail", ...texts);
-};
-
-prototype.error = function (self, ...texts) {
-    return self.tag("error", ...texts);
-};
-
-prototype.err = function (self, ...texts) {
-    return self.error(...texts);
-};
-
-prototype.warning = function (self, ...texts) {
-    return self.warn(...texts);
-};
-
-prototype.warn = function (self, ...texts) {
-    return self.tag("warn", ...texts);
-};
-
-prototype.inform = function (self, ...texts) {
-    return self.tag("info", ...texts);
-};
-
-prototype.info = function (self, ...texts) {
-    return self.inform(...texts);
-};
-
-prototype.debug = function (self, ...texts) {
-    return self.tag("debug", ...texts);
-};
-
-prototype.notice = function (self, ...texts) {
-    return self.tag("notice", ...texts);
-};
-
-prototype.ready = function (self, ...texts) {
-    return self.tag("ready", ...texts);
-};
-
-prototype.clear = function (self) {
-    if (self.stdout && self.stdout.isTTY) self.stdout.write("\x1B[2J\x1B[3J\x1B[H");
-};
-
-prototype.tableRaw = function (self, object, columns = null) {
-    if (typeof object !== "object") return false;
-    const notDefined = {};
-    let keys, values;
-    if (object instanceof Set) object = [...object];
-    if (object instanceof Map) {
-        const all = [...object];
-        keys = all.map(i => i[0]);
-        values = all.map(i => i[1]);
-    } else {
-        keys = Object.keys(object);
-        /*** @type {any[]} */
-        values = Object.values(object);
-    }
-    if (object.constructor === Array) keys = keys.map(i => i * 1);
-    if (!keys.length) return ["┌┐\n└┘"];
-    let addedVal = false;
-    const columnNames = columns || values.map(i => typeof i === "object" ? Object.keys(i) : []).flat();
-    if (values.some(i => typeof i !== "object")) {
-        addedVal = true;
-        columnNames.push("Value");
-    }
-    const table = [[["", "", ""], ...columnNames.map(i => [i, i, i])]];
-    const ins = (s, color = true) => require("util").inspect(s, false, null, color);
-    keys.forEach((key, index) => {
-        const value = values[index];
-        const objKeys = typeof value === "object" ? Object.keys(value) : [];
-        table.push([key, ...columnNames.map((i, j) => j === columnNames.length - 1 && addedVal && typeof value !== "object" ? value : (objKeys.includes(i) ? value[i] : notDefined))].map(i => [i, ins(i), ins(i, false)]));
-    });
-    const columnLengths = new Array(table[0].length).fill(0).map((_, i) => table.reduce((a, b) => Math.max(a, b[i][2].length), 0));
-    const topSp = columnLengths.map(i => "─".repeat(i + 2));
-    let result = ["┌" + topSp.join("┬") + "┐"];
-    for (let i = 0; i < table.length; i++) {
-        if (i) result.push("├" + topSp.join("┼") + "┤")
-        const row = table[i];
-        result.push("│" + row.map((k, j) => {
-            const l = k[0] === notDefined ? "" : (i ? k[1] : k[0]);
-            const totalSpace = columnLengths[j] - (k[0] === notDefined ? 0 : k[2].length) + 2;
-            const firstSpace = Math.round(totalSpace / 2);
-            return " ".repeat(firstSpace) + l + " ".repeat(totalSpace - firstSpace);
-        }).join("│") + "│");
-    }
-    result.push("└" + topSp.join("┴") + "┘");
-    return result;
-};
-
-prototype.table = function (self, object, columns = null, tagName = "log") {
-    const result = self.tableRaw(object, columns);
-    if (result) result.forEach(i => tagName ? self.tag(tagName, i) : self.println(i));
-    else tagName ? self.tag(tagName, object) : self.println(object);
-    return self;
-};
-
-prototype.time = function (self, name = "default") {
-    self._times[name] = performance.now();
-    return self;
-};
-
-prototype.timeGet = function (self, name = "default") {
-    return performance.now() - (self._times[name] || performance.now());
-};
-
-prototype.timeLog = function (self, name = "default", fixed = 3) {
-    self.log(name + ": " + self.timeGet(name).toFixed(fixed) + "ms");
-    return self;
-};
-
-prototype.timeEnd = function (self, name = "default", fixed = 3) {
-    delete self._times[name];
-    self.timeLog(name, fixed);
-    return self;
-};
-
-prototype.count = function (self, name = "default") {
-    self.log(name + ": " + (self._counts[name] = (self._counts[name] || 0) + 1));
-    return self._counts[name];
-};
-
-prototype.countGet = function (self, name = "default") {
-    return self._counts[name];
-};
-
-prototype.countReset = function (self, name = "default") {
-    self._counts[name] = 0;
-    return self;
-};
-
-prototype.group = function (self) {
-    self._group++;
-    return self;
-};
-
-prototype.groupEnd = function (self) {
-    self._group--;
-    if (self._group < 0) self._group = 0;
-    return self;
-};
-
-prototype.groupGet = function (self) {
-    return self._group;
-};
-
-prototype.assert = function (self, assertion, ...texts) {
-    if (assertion) return self;
-    self.tag("assert", ...texts);
-    return self;
-};
-
-prototype.updateOptions = function (self, opts) {
-    if (typeof opts !== "object" || Array.isArray(opts)) opts = {};
-    Printer.setDefault(opts, Printer.DEFAULT_OPTIONS);
-    self.options = {...self.options, ...opts};
-    return self;
-};
-
-prototype.readStdinData = async function (self) {
-    return await new Promise(r => self.stdin.once("data", r));
-}
-
-prototype.readLine = async function (self, stringify = true, trim = true) {
-    if (!self.stdin) return "";
-    self.stdin.resume();
-    let res = await self.readStdinData();
-    if (stringify) res = res.toString();
-    if (trim) res = res.trim();
-    self.stdin.pause();
-    return res;
-};
-
-prototype.readKey = async function (self, stringify = false, trim = false) {
-    if (!self.stdin) return "";
-    self.stdin.setRawMode(true);
-    const res = await self.readLine(false, trim);
-    if (isWeb && res[0] === 3) process.exit();
-    self.stdin.setRawMode(false);
-    return res.toString();
-};
-
-prototype.readCustom = function (self, options) {
-    if (!self.stdin) return {
-        promise: new Promise(r => r("")),
-        end: () => true
-    };
-    if (typeof options !== "object" || Array.isArray(options)) options = {};
-    Printer.setDefault(options, {
-        onKey: text => self.print(text),
-        onBackspace: () => self.backspace(),
-        onArrow: () => true,
-        onEnd: () => self.print("\n"),
-        onTermination: () => !isWeb && process.exit(),
-        timeout: -1
-    });
-    let cursor = -1;
-    let result = "";
-    let promCb;
-    const promise = new Promise(r => promCb = r);
-    self.stdin.setRawMode(true);
-    self.stdin.resume();
-    let func;
-    let resolved = false;
-    self.stdin.on("data", func = buffer => {
-        let text = buffer.toString();
-        if (text === "\u0003") return options.onTermination();
-        else if (text === "\u0008") {
-            result = result.substring(0, cursor) + result.substring(cursor + 1);
-            cursor--;
-            if (cursor < -1) cursor = -1;
-            options.onBackspace();
-            return;
-        } else if (text[0] === "\u001b") {
-            const type = {A: "up", B: "down", C: "right", D: "left"}[text[2]];
-            options.onArrow(type, text);
-            return;
-        } else if (text === "\n" || text === "\r" || text === "\u0004") {
-            self.stdin.setRawMode(false);
-            self.stdin.pause();
-            options.onEnd();
-            self.stdin.off("data", func);
-            promCb(result);
-            resolved = true;
-            return;
-        } else {
-            result = result.substring(0, cursor + 1) + text + result.substring(cursor + 1);
-            cursor++;
-        }
-        options.onKey(text);
-    });
-    const th = {
-        promise,
-        end: () => resolved || self.stdin.emit("data", "\n")
-    };
-    if (options.timeout && options.timeout > 0) setTimeout(() => th.end(), options.timeout);
-    return th;
-};
-
-prototype.readPassword = async function (self, options) {
-    if (typeof options !== "object" || Array.isArray(options)) options = {};
-    Printer.setDefault(options, {expectPromise: true});
-    const th = self.readCustom({
-        onKey: text => self.stdout.write(options.character || "*"),
-        ...options
-    });
-    if (options.expectPromise) return await th.promise;
-    return th;
-};
-
-prototype.readSelection = async function (self, list = [], options) {
-    if (typeof options !== "object" || Array.isArray(options)) options = {};
-    if (list.length === 0) return "";
-    Printer.setDefault(options, {expectPromise: true});
-    let selected = 0;
-    self.print(list[selected]);
-    const th = self.readCustom({
-        onKey: r => r,
-        onBackspace: r => r,
-        onArrow: arrow => {
-            let old = selected;
-            if (arrow === "up" || arrow === "left") {
-                selected--;
-                if (selected < 0) selected = list.length - 1;
-            } else if (arrow === "down" || arrow === "right") {
-                selected++;
-                if (selected > list.length - 1) selected = 0;
-            } else return;
-            self.backspace(list[old].length);
-            self.print(list[selected]);
-        }, ...options
-    });
-    th.rawPromise = th.promise;
-    th.promise = new Promise(async r => {
-        await th.rawPromise;
-        r(selected);
-    });
-    if (options.expectPromise) return await th.promise;
-    return th;
-};
-
-prototype.readSelectionListed = async function (self, list = [], options) {
-    if (typeof options !== "object" || Array.isArray(options)) options = {};
-    Printer.setDefault(options, {
-        selectedColor: "black",
-        selectedBackgroundColor: "white",
-        selectedPadding: 0,
-        selectedBold: true,
-        selectedItalic: false,
-        selectedUnderline: false,
-        selectedStrikethrough: false,
-        normalColor: "",
-        normalBackgroundColor: "",
-        normalPadding: 0,
-        normalBold: false,
-        normalItalic: false,
-        normalUnderline: false,
-        normalStrikethrough: false,
-        expectPromise: true
-    });
-    if (list.length === 0) return "";
-    let selected = 0;
-    let typed = "";
-    const update = () => {
-        self.backspace(typed.length);
-        typed = "";
-        let ty = "";
-        for (let i = 0; i < list.length; i++) {
-            typed += list[i];
-            if (selected === i) ty += Printer.paint(list[i], componentHelper("selected", options));
-            else ty += list[i];
-            if (i !== list.length - 1) {
-                typed += " ";
-                ty += " ";
+        this.addComponent("tag", opts => {
+            const tag = this.tags[opts.tag || ""] || this.tags[(opts.tag || "").toLowerCase()] || this.tags.log;
+            opts.defaultColor = /*opts.defaultColor || */tag.textColor;
+            const txt = typeof tag.text === "function" ? tag.text() : tag.text;
+            const gotOpts = componentHelper("tag", opts);
+            return {
+                result: Printer.paint(txt, {
+                    ...gotOpts,
+                    color: gotOpts.color || fnCheck(tag.color),
+                    backgroundColor: fnCheck(tag.backgroundColor)
+                }), plain: txt
+            };
+        });
+        this.addComponent("time", opts => {
+            const date = new Date;
+            const l = [["Date", "getDate"], ["Hour", "getHours"], ["Minute", "getMinutes"], ["Second", "getSeconds"], ["Millisecond", "getMilliseconds", opts.timeMillisecondLength]];
+            let text = "";
+            for (let i = 0; i < l.length; i++) {
+                const k = l[i];
+                if (opts["time" + k[0]]) text += date[k[1]]().toString().padStart(k[2] || 2, "0").substring(0, k[2] || 2) + (k[0] === "Second" ? "." : ":");
             }
-        }
-        self.print(ty);
-    };
-    update();
-    const th = self.readCustom({
-        onKey: r => r,
-        onBackspace: r => r,
-        onArrow: arrow => {
-            let old = selected;
-            if (arrow === "up" || arrow === "left") {
-                selected--;
-                if (selected < 0) selected = list.length - 1;
-            } else if (arrow === "down" || arrow === "right") {
-                selected++;
-                if (selected > list.length - 1) selected = 0;
-            } else return;
-            update();
-        }, ...options
-    });
-    th.rawPromise = th.promise;
-    th.promise = new Promise(async r => {
-        await th.rawPromise;
-        r(selected);
-    });
-    if (options.expectPromise) return await th.promise;
-    return th;
-};
+            text = text.substring(0, text.length - 1);
+            return {
+                result: Printer.paint(text, componentHelper("time", opts)), plain: text
+            };
+        });
+        this.addComponent("uptime", opts => {
+            let l = [];
+            let t = performance.now();
+            let d = k => {
+                const d = Math.floor(t / k);
+                l.push(d.toString().padStart(k === 1 ? 3 : 2, "0").substring(0, k === 1 ? opts.uptimeMillisecondLength : 3));
+                t -= d * k;
+            };
+            if (opts.uptimeDate) d(1000 * 60 * 60 * 24);
+            if (opts.uptimeHour) d(1000 * 60 * 60);
+            if (opts.uptimeMinute) d(1000 * 60);
+            if (opts.uptimeSecond) d(1000);
+            if (opts.uptimeMillisecond) d(1);
+            const text = l.join(":");
+            return {
+                result: Printer.paint(text, componentHelper("uptime", opts)), plain: text
+            };
+        });
+        this.addComponent("namespace", opts => {
+            if (!opts.namespace) return {result: "", plain: ""};
+            return {
+                result: Printer.paint(opts.namespace, componentHelper("namespace", opts)) + " ",
+                plain: opts.namespace
+            };
+        });
+        this.addComponent("filename", opts => {
+            let file = (__stack().find(i => i.fileName && i.fileName !== __filename) || {}).fileName;
+            if (opts.filenameBase) file = path.basename(file || "");
+            return {
+                result: Printer.paint(file, componentHelper("filename", opts)),
+                plain: file
+            };
+        });
+        this.addComponent("line", opts => {
+            const line = (__stack().find(i => i.fileName && i.fileName !== __filename) || {}).lineNumber;
+            return {
+                result: Printer.paint(line, componentHelper("line", opts)),
+                plain: line
+            };
+        });
+        this.addComponent("column", opts => {
+            const column = (__stack().find(i => i.fileName && i.fileName !== __filename) || {}).columnNumber;
+            return {
+                result: Printer.paint(column, componentHelper("column", opts)),
+                plain: column
+            };
+        });
+        this.addComponent("stack", opts => {
+            const f = __stack().find(i => i.fileName && i.fileName !== __filename) || {};
+            const t = (opts.stackBase ? path.basename(f.fileName || "") : f.fileName) + ":" + f.lineNumber + ":" + f.columnNumber;
+            return {
+                result: Printer.paint(t, componentHelper("stack", opts)),
+                plain: t
+            };
+        });
 
-prototype.parseCSS = function (self, text) {
-    return Printer.parseCSS(text);
-};
+        /// SUBSTITUTIONS ///
 
-prototype.cleanCSS = function (self, opts) {
-    return Printer.cleanCSS(opts);
-};
-
-prototype.applyCSS = function (self, styles) {
-    return Printer.applyCSS(styles);
-};
-
-prototype.css = function (self, text) {
-    return Printer.css(text);
-};
-
-prototype.setOptions = function (self, options) {
-    if (typeof options !== "object" || Array.isArray(options)) options = {};
-    self.options = {...self.options, ...options};
-    return self;
-};
-
-prototype.updateBodyStyle = (self, element = document.body) => {
-    if (!isWeb) throw new Error("updateBodyStyle() method cannot be used outside web.");
-    element.style.background = "#1e1f22";
-    element.style.color = "#bcbec4";
-    element.style.fontFamily = "monospace,serif";
-}
-
-Printer.DEFAULT_OPTIONS = DEFAULT_OPTIONS;
-
-Printer.paint = (text, options) => {
-    if (typeof options !== "object" || Array.isArray(options)) options = {};
-    Printer.setDefault(options, {
-        color: "",
-        backgroundColor: "",
-        bold: false,
-        italic: false,
-        underline: false,
-        strikethrough: false,
-        padding: 0,
-        ending: true
-    });
-    if (options.padding > 0) text = " ".repeat(options.padding) + text + " ".repeat(options.padding);
-    text = Printer.color(text, options.color);
-    text = Printer.background(text, options.backgroundColor);
-    if (options.bold) text = Color.bold(text);
-    if (options.italic) text = Color.italic(text);
-    if (options.underline) text = Color.underline(text);
-    if (options.strikethrough) text = Color.strikethrough(text);
-    if (!options.ending) text = text.replace("\x1B[39m", "").replace("\x1B[49m", "")
-        .replace("\x1B[22m", "").replace("\x1B[23m", "")
-        .replace("\x1B[24m", "").replace("\x1B[29m", "").replace(" ", "")
-    return text;
-};
-
-Printer.stringify = any => {
-    const type = typeof any;
-    if (any === null) return "null";
-    if (type === "string") return any;
-    if (type === "undefined") return "undefined";
-    if (type === "boolean") return any ? "true" : "false";
-    if (type === "object" || type === "symbol" || type === "function") return util.inspect(any);
-    return any.toString();
-};
-
-Printer.color = (text, color) => {
-    if (["default", "bgDefault", "none", "bgNone", "transparent", "bgTransparent", ""].includes(color)) return text;
-    const isBg = color[0] === "b" && color[1] === "g";
-    let rest = isBg ? color.substring(2) : color;
-    rest = {
-        scarlet: "redBright",
-        crimson: "redBright",
-        vermilion: "redBright",
-        lime: "greenBright",
-        lemon: "yellowBright",
-        canary: "yellowBright",
-        electric: "blueBright",
-        pink: "magentaBright",
-        aqua: "cyanBright"
-    }[rest] || rest;
-    const sup = Color.supportsColor.has16m;
-    if (rest.startsWith("rgb(")) {
-        if (!sup) return text;
-        const clr = rest.substring(4, rest.length - 1).split(/[, ]/).filter(i => i).map(i => i * 1);
-        return Color[isBg ? "bgRgb" : "rgb"](...clr)(text);
-    }
-    if (rest.startsWith("hsl(")) {
-        if (!sup) return text;
-        const clr = rest.substring(4, rest.length - 1).split(/[, ]/).filter(i => i).map(i => i * 1);
-        return Color[isBg ? "bgHsl" : "hsl"](...clr)(text);
-    }
-    if (rest.startsWith("hsv(")) {
-        if (!sup) return text;
-        const clr = rest.substring(4, rest.length - 1).split(/[, ]/).filter(i => i).map(i => i * 1);
-        return Color[isBg ? "bgHsv" : "hsv"](...clr)(text);
-    }
-    if (rest[0] === "#") {
-        if (!sup) return text;
-        return Color[isBg ? "bgHex" : "hex"](rest.substring(1))(text);
-    }
-    if (ansiKeys[color] && !Color.supportsColor.hasBasic) return text;
-    if (!ansiKeys[color] && !Color.supportsColor.has16m) return text;
-    return (Color[color] || (r => r))(text);
-};
-Printer.background = (text, color) => Printer.color(text, "bg" + (color[0] || "").toUpperCase() + (color || "").substring(1));
-
-Printer.setDefault = (got, def) => Object.keys(def).forEach(i => {
-    if (got[i] === undefined) got[i] = def[i]; else if (typeof def[i] === "object") Printer.setDefault(got[i], def[i]);
-});
-
-Printer.makeGlobal = (_console = false) => {
-    if (_console) global.console = Printer.static;
-    global.Printer = Printer;
-    // noinspection JSValidateTypes
-    global.printer = Printer.static;
-};
-
-Printer.new = options => new Printer(options);
-Printer.create = options => new Printer(options);
-
-Printer.substitute = (substitutions, chr, ...texts) => {
-    let ret = "";
-    let colored = false;
-    const NoSub = {};
-    const ColorSub = {value: ""};
-    for (let i = 0; i < texts.length; i++) {
-        const item = texts[i];
-        if (typeof item !== "string") {
-            ret += Printer.stringify(item) + (i === texts.length - 1 ? "" : " ");
-            continue;
-        }
-        if (item.length === 0) {
-            if (i !== 0 && texts[i - 1].length) ret = ret.substring(0, ret.length - 1);
-            continue;
-        }
-        let fl = false;
-        for (let j = 0; j < item.length; j++) {
-            const c = item[j];
-            if (fl) {
-                fl = false;
-                if (c === chr) {
-                    ret += chr;
-                    continue;
-                }
-                const su = substitutions[c];
-                if (!su) {
-                    ret += chr + c;
-                    continue;
-                }
-                i++;
-                const u = su(texts[i], {Cancel: NoSub, Color: ColorSub});
-                if (u === NoSub) {
-                    ret += chr + c;
-                    i--;
-                    continue;
-                }
-                if (u === ColorSub) {
-                    colored = true;
-                    ret += u.value;
-                    continue;
-                }
-                ret += u;
-            } else {
-                if (c === chr && i !== texts.length - 1) {
-                    fl = true;
-                    continue;
-                }
-                ret += c;
+        this.addSubstitution("v", s => Printer.stringify(s));
+        const objectSub = (s, {Cancel}) => {
+            const type = typeof s;
+            if (type !== "object" && type !== "function") return Cancel;
+            return Printer.stringify(s);
+        };
+        this.addSubstitution("o", objectSub);
+        this.addSubstitution("O", objectSub);
+        this.addSubstitution("s", (s, {Cancel}) => {
+            if (typeof s !== "string") return Cancel;
+            return s;
+        });
+        this.addSubstitution("j", (s, {Cancel}) => {
+            if (s === null || typeof s !== "object" || s.constructor !== Object) return Cancel;
+            try {
+                return JSON.stringify(s);
+            } catch (e) {
+                return Cancel;
             }
-        }
-        if (i !== texts.length - 1) ret += " ";
-    }
-    if (colored) ret += ClearAll;
-    return ret;
-};
+        });
+        const integerSub = (s, Cancel) => {
+            if (typeof s !== "number") return Cancel;
+            return ((Math.sign(s) * Math.floor(Math.abs(s)))).toString();
+        };
+        this.addSubstitution("i", integerSub);
+        this.addSubstitution("d", integerSub);
+        this.addSubstitution("f", (s, Cancel) => {
+            if (typeof s !== "number") return Cancel;
+            return s.toString();
+        });
+        this.addSubstitution("c", (s, {Cancel, Color}) => {
+            if (typeof s !== "string") return Cancel;
+            Color.value = this.css(s);
+            return Color;
+        });
+    };
 
-Printer.parseCSS = text => {
-    const styles = {};
-    text.split(";").forEach(i => styles[i.split(":")[0].trim()] = i.split(":").slice(1).join(":").trim());
-    return styles;
-};
+    addFile(file) {
+        if (isWeb) throw new Error("addFile() method cannot be used on web.");
+        this.streams.set(file, fs.createWriteStream(file, {flags: "a"}));
+        return this
+    };
 
-Printer.cleanCSS = opts => {
-    if (typeof opts !== "object" || Array.isArray(opts)) opts = {};
-    const styles = {
-        font: {
-            color: "",
-            style: {
-                italic: false
+    removeFile(file) {
+        this.streams.delete(file);
+        return this
+    };
+
+    makeLoggerFile(options) {
+        if (isWeb) throw new Error("makeLoggerFile() method cannot be used on web.");
+        options = Printer.setDefault(options, {
+            folder: "./logs", format: "log-" + this.chr + "DD-" + this.chr + "MM-" + this.chr + "YYYY.log",
+            month: "long", day: "long"
+        });
+        this._periodicOptions = options;
+        if (this.streams.get("!periodic")) return;
+        let sl;
+        this.streams.set("!periodic", sl = {
+            write: content => {
+                const options = this._periodicOptions;
+                if (!fs.existsSync(options.folder)) fs.mkdirSync(options.folder);
+                const d = new Date;
+                const day = d.getDate();
+                const month = d.getMonth() + 1;
+                const year = d.getFullYear();
+                const hours = d.getHours();
+                const minutes = d.getMinutes();
+                const seconds = d.getSeconds();
+                const ms = d.getMilliseconds();
+                const date = new Date;
+                const list = [
+                    ["date", date.toLocaleString("en", {weekday: options.day}), true],
+                    ["month", date.toLocaleString("en", {month: options.month}), true],
+                    ["D", day],
+                    ["M", month],
+                    ["Y", year],
+                    ["h", hours],
+                    ["m", minutes],
+                    ["s", seconds],
+                    ["S", ms]
+                ];
+                const formatted = list.reduce((a, b) => a.replaceAll(new RegExp("\\" + this.chr + b[0] + (b[2] ? "" : "+"), "g"), str => {
+                    if (b[2]) return b[1];
+                    const len = str.length - 1;
+                    str = b[1].toString().padStart(len, "0");
+                    if (str.length > len) str = str.substring(str.length - len);
+                    return str;
+                }), fnCheck(options.format, options));
+                const file = path.join(options.folder, formatted);
+                if (!sl._streams.has(file)) {
+                    if (sl._lastStream) sl._lastStream.close();
+                    fs.mkdirSync(path.dirname(file), {recursive: true});
+                    sl._streams.set(file, sl._lastStream = fs.createWriteStream(file, {flags: "a"}));
+                }
+                sl._streams.get(file).write(content);
             },
-            weight: 100
-        },
-        background: {
-            color: ""
-        },
-        textDecoration: {
-            //color: "",
-            line: {
-                under: false,
-                //over: false,
-                through: false
-            }
-        },
-        padding: 0,
-        //margin: 0,
+            _lastStream: null,
+            _streams: new Map
+        });
+        return this
     };
-    styles.font.color = opts["color"] || opts["font-color"] || opts["fontColor"] || "";
-    styles.background.color = opts["background"] || opts["background-color"] || opts["backgroundColor"] || "";
-    styles.font.weight = opts["font-weight"] || opts["fontWeight"];
-    if (styles.font.weight === "bold" || styles.font.weight === "bolder") styles.font.weight = 600;
-    else if (typeof styles.font.weight !== "number") styles.font.weight = 100;
-    const fontStyle = opts["font-style"] || opts["fontStyle"] || "";
-    styles.font.style.italic = fontStyle.includes("italic") || fontStyle.includes("oblique");
-    const textDecoration = opts["text-decoration"] || opts["textDecoration"] || "";
-    styles.textDecoration.line.under =
-        textDecoration.includes("underline") ||
-        textDecoration.includes("under");
-    styles.textDecoration.line.through =
-        textDecoration.includes("strikethrough") ||
-        textDecoration.includes("strike-through") ||
-        textDecoration.includes("linethrough") ||
-        textDecoration.includes("line-through");
-    styles.padding = opts["padding"];
-    if (typeof styles.padding !== "number" || styles.padding < 0) styles.padding = 0;
-    return styles;
-};
 
-Printer.applyCSS = styles => {
-    return ClearAll + Printer.paint(" ", {
-        color: styles.font.color,
-        backgroundColor: styles.background.color,
-        bold: styles.font.weight >= 600,
-        italic: styles.font.style.italic,
-        underline: styles.textDecoration.line.under,
-        strikethrough: styles.textDecoration.line.through,
-        padding: styles.padding,
-        ending: false
-    });
-};
+    makeHashedLoggerFile(options) {
+        if (isWeb) throw new Error("makeHashedLoggerFile() method cannot be used on web.");
+        options = Printer.setDefault(options, {
+            folder: "./logs", radix: 16, divide: 3, format: "log-" + this.chr + "t.log"
+        });
+        if (!fs.existsSync(options.folder)) fs.mkdirSync(options.folder);
+        const file = path.join(options.folder, fnCheck(options.format, options).replaceAll(this.chr + "t", Math.floor(Date.now() / (10 ** options.divide)).toString(options.radix)));
+        this.addFile(file);
+        return this
+    };
 
-Printer.css = text => Printer.applyCSS(Printer.cleanCSS(Printer.parseCSS(text)));
-Printer.DEFAULT_OUTPUTS = {
-    web: self => ({
-        write: s => {
-            const colors = [];
-            let current = [null, null];
-            s = webParser(s, colors, current);
-            const clr = [];
-            let tmp = [];
-            for (let i = 0; i < colors.length; i++) {
-                if (colors[i][0] === "") tmp = [];
-                else tmp.push(colors[i][0]);
-                clr.push(tmp.join(";"));
+    makeGlobal(_con = false) {
+        const gl = isWeb ? window : global;
+        if (_con) gl.console = this;
+        gl.Printer = this;
+        gl.printer = this;
+        return this
+    };
+
+    new(options) {
+        return new Printer(options);
+    };
+
+    create(options) {
+        return new Printer(options);
+    };
+
+    namespace(namespace) {
+        return this.create({...this.options, namespace});
+    };
+
+    addComponent(name, callback) {
+        this.components[name] = callback;
+        return this
+    };
+
+    removeComponent(name) {
+        delete this.components[name];
+        return this
+    };
+
+    getComponents() {
+        return this.components;
+    };
+
+    getComponent(name) {
+        return this.components[name];
+    };
+
+    addSubstitution(character, run) {
+        this.substitutions[character] = run;
+        return this
+    };
+
+    removeSubstitution(character) {
+        delete this.substitutions[character];
+        return this
+    };
+
+    getSubstitution(character) {
+        return this.substitutions[character];
+    };
+
+    getSubstitutions() {
+        return this.substitutions;
+    };
+
+    addTag(key, text, color, backgroundColor, textColor = "", textBackgroundColor = "") {
+        this.tags[key] = {text, color, backgroundColor, textColor, textBackgroundColor};
+        return this
+    };
+
+    removeTag(key) {
+        delete this.tags[key];
+        return this
+    };
+
+
+    getTags() {
+        return this.tags;
+    };
+
+
+    getTag(key) {
+        return this.tags[key];
+    };
+
+
+    setFormat(format) {
+        this.options.format = format;
+        return this
+    };
+
+
+    getFormat() {
+        return this.options.format;
+    };
+
+
+    setCharacter(character) {
+        this.chr = character;
+        return this
+    };
+
+
+    getCharacter() {
+        return this.chr;
+    };
+
+
+    println(text) {
+        if (!this.stdout) return this
+        this.stdout.write(Printer.stringify(text) + "\n");
+        return this
+    };
+
+
+    printLine(text) {
+        return this.println(text);
+    };
+
+
+    print(text) {
+        if (!this.stdout) return this
+        this.stdout.write(Printer.stringify(text));
+        return this
+    };
+
+
+    backspace(amount = 1) {
+        if (!this.stdout) return this
+        this.stdout.write("\b \b".repeat(amount));
+        return this
+    };
+
+
+    substitute(...texts) {
+        return Printer.substitute(this.substitutions, this.chr, ...texts);
+    };
+
+
+    log(...texts) {
+        const options = this.options;
+        let text = "";
+        if (this.options.substitutionsEnabled) {
+            text = this.substitute(...texts);
+        } else {
+            for (let i = 0; i < texts.length; i++) {
+                let t = Printer.stringify(texts[i]);
+                text += t;
+                if (i !== texts.length - 1) text += " ";
             }
-            console.log(s, ...clr); // THIS PART IS ONLY RAN IF IT'S ON WEB!
         }
-    }),
-    html: self => {
-        if (!isWeb) return Printer.DEFAULT_OUTPUTS.terminal();
-        const el = document.createElement("div");
-        return {
+        text += ClearAll;
+        const lines = Printer.stringify(text).split("\n");
+        let comp = {};
+        let formatted = options.format;
+        let colored = formatted;
+        let plain = formatted;
+        if (options.componentsEnabled && Object.keys(this.components).length > 0) {
+            const reg = `\\${this.chr}[a-zA-Z]+`;
+            const spl = fnCheck(options.format, options).split(new RegExp("(" + reg + ")", "g"));
+            formatted = spl.filter(i => i).map(i => {
+                if (!new RegExp("^" + reg + "$").test(i.toString())) return i;
+                i = i.substring(1);
+                if (!this.components[i]) return this.chr + i;
+                i = comp[i] || this.components[i](options);
+                if (typeof i === "string" || typeof i === "number") return i.toString();
+                if (typeof i !== "object") throw new Error("Expected the component to throw string, number or an object, got: " + typeof i);
+                return i;
+            });
+            colored = formatted.map(i => typeof i === "string" ? i : i.result).join("");
+            plain = formatted.map(i => typeof i === "string" ? i : i.plain).join("");
+        }
+        lines.forEach(line => {
+            const l = line;
+            line = Printer.color(line, options.defaultColor, options.alwaysRGB, options.paletteName);
+            line = Printer.color(line, options.defaultBackgroundColor, options.alwaysRGB, options.paletteName);
+            const plainText = " ".repeat(this._group) + plain.replaceAll(this.chr + "text", l).replaceAll(/\x1B\[\d+m/g, "") + (options.newLine ? "\n" : "");
+            if (options.stylingEnabled) this[options.newLine ? "println" : "print"](Printer.paint(" ".repeat(this._group), componentHelper("group", options)) + colored.replaceAll(this.chr + "text", line));
+            else this[options.newLine ? "println" : "print"](plainText);
+            this.streams.forEach(stream => stream.write(plainText));
+        });
+        return this
+    };
+
+
+    tag(tag, ...texts) {
+        const {tag: old} = this.options;
+        const {defaultColor, defaultBackgroundColor} = this.options;
+        // noinspection JSConstantReassignment
+        this.options.tag = tag;
+        this.log(...texts);
+        // noinspection JSConstantReassignment
+        this.options.tag = old;
+        this.options.defaultColor = defaultColor;
+        this.options.defaultBackgroundColor = defaultBackgroundColor;
+        return this
+    };
+
+
+    pass(...texts) {
+        return this.tag("pass", ...texts);
+    };
+
+
+    fail(...texts) {
+        return this.tag("fail", ...texts);
+    };
+
+
+    error(...texts) {
+        return this.tag("error", ...texts);
+    };
+
+
+    err(...texts) {
+        return this.error(...texts);
+    };
+
+
+    warning(...texts) {
+        return this.warn(...texts);
+    };
+
+
+    warn(...texts) {
+        return this.tag("warn", ...texts);
+    };
+
+
+    inform(...texts) {
+        return this.tag("info", ...texts);
+    };
+
+
+    info(...texts) {
+        return this.inform(...texts);
+    };
+
+
+    debug(...texts) {
+        return this.tag("debug", ...texts);
+    };
+
+
+    notice(...texts) {
+        return this.tag("notice", ...texts);
+    };
+
+
+    ready(...texts) {
+        return this.tag("ready", ...texts);
+    };
+
+
+    clear() {
+        if (this.stdout && this.stdout.isTTY) this.stdout.write("\x1B[2J\x1B[3J\x1B[H");
+    };
+
+
+    tableRaw(object, columns = null) {
+        if (typeof object !== "object") return false;
+        const notDefined = {};
+        let keys, values;
+        if (object instanceof Set) object = [...object];
+        if (object instanceof Map) {
+            const all = [...object];
+            keys = all.map(i => i[0]);
+            values = all.map(i => i[1]);
+        } else {
+            keys = Object.keys(object);
+            /*** @type {any[]} */
+            values = Object.values(object);
+        }
+        if (object.constructor === Array) keys = keys.map(i => i * 1);
+        if (!keys.length) return ["┌┐\n└┘"];
+        let addedVal = false;
+        const columnNames = columns || values.map(i => typeof i === "object" ? Object.keys(i) : []).flat();
+        if (values.some(i => typeof i !== "object")) {
+            addedVal = true;
+            columnNames.push("Value");
+        }
+        const table = [[["", "", ""], ...columnNames.map(i => [i, i, i])]];
+        const ins = (s, color = true) => require("util").inspect(s, false, null, color);
+        keys.forEach((key, index) => {
+            const value = values[index];
+            const objKeys = typeof value === "object" ? Object.keys(value) : [];
+            table.push([key, ...columnNames.map((i, j) => j === columnNames.length - 1 && addedVal && typeof value !== "object" ? value : (objKeys.includes(i) ? value[i] : notDefined))].map(i => [i, ins(i), ins(i, false)]));
+        });
+        const columnLengths = new Array(table[0].length).fill(0).map((_, i) => table.reduce((a, b) => Math.max(a, b[i][2].length), 0));
+        const topSp = columnLengths.map(i => "─".repeat(i + 2));
+        let result = ["┌" + topSp.join("┬") + "┐"];
+        for (let i = 0; i < table.length; i++) {
+            if (i) result.push("├" + topSp.join("┼") + "┤")
+            const row = table[i];
+            result.push("│" + row.map((k, j) => {
+                const l = k[0] === notDefined ? "" : (i ? k[1] : k[0]);
+                const totalSpace = columnLengths[j] - (k[0] === notDefined ? 0 : k[2].length) + 2;
+                const firstSpace = Math.round(totalSpace / 2);
+                return " ".repeat(firstSpace) + l + " ".repeat(totalSpace - firstSpace);
+            }).join("│") + "│");
+        }
+        result.push("└" + topSp.join("┴") + "┘");
+        return result;
+    };
+
+
+    table(object, columns = null, tagName = "log") {
+        const result = this.tableRaw(object, columns);
+        if (result) result.forEach(i => tagName ? this.tag(tagName, i) : this.println(i));
+        else tagName ? this.tag(tagName, object) : this.println(object);
+        return this
+    };
+
+
+    time(name = "default") {
+        this._times[name] = performance.now();
+        return this
+    };
+
+
+    timeGet(name = "default") {
+        return performance.now() - (this._times[name] || performance.now());
+    };
+
+
+    timeLog(name = "default", fixed = 3) {
+        this.log(name + ": " + this.timeGet(name).toFixed(fixed) + "ms");
+        return this
+    };
+
+
+    timeEnd(name = "default", fixed = 3) {
+        delete this._times[name];
+        this.timeLog(name, fixed);
+        return this
+    };
+
+
+    count(name = "default") {
+        this.log(name + ": " + (this._counts[name] = (this._counts[name] || 0) + 1));
+        return this._counts[name];
+    };
+
+
+    countGet(name = "default") {
+        return this._counts[name];
+    };
+
+
+    countReset(name = "default") {
+        this._counts[name] = 0;
+        return this
+    };
+
+
+    group() {
+        this._group++;
+        return this
+    };
+
+
+    groupEnd() {
+        this._group--;
+        if (this._group < 0) this._group = 0;
+        return this
+    };
+
+
+    groupGet() {
+        return this._group;
+    };
+
+
+    assert(assertion, ...texts) {
+        if (assertion) return this
+        this.tag("assert", ...texts);
+        return this
+    };
+
+
+    updateOptions(opts) {
+        opts = Printer.setDefault(opts, Printer.DEFAULT_OPTIONS);
+        this.options = {...this.options, ...opts};
+        return this
+    };
+
+
+    async readStdinData() {
+        return await new Promise(r => this.stdin.once("data", r));
+    };
+
+
+    async readLine(stringify = true, trim = true) {
+        if (!this.stdin) return "";
+        this.stdin.resume();
+        let res = await this.readStdinData();
+        if (stringify) res = res.toString();
+        if (trim) res = res.trim();
+        this.stdin.pause();
+        return res;
+    };
+
+
+    async readKey(stringify = false, trim = false) {
+        if (!this.stdin) return "";
+        this.stdin.setRawMode(true);
+        const res = await this.readLine(false, trim);
+        if (isWeb && res[0] === 3) process.exit();
+        this.stdin.setRawMode(false);
+        return res.toString();
+    };
+
+
+    readCustom(options) {
+        if (!this.stdin) return {
+            promise: new Promise(r => r("")),
+            end: () => true
+        };
+        options = Printer.setDefault(options, {
+            onKey: text => this.print(text),
+            onBackspace: () => this.backspace(),
+            onArrow: () => true,
+            onEnd: () => this.print("\n"),
+            onTermination: () => !isWeb && process.exit(),
+            timeout: -1
+        });
+        let cursor = -1;
+        let result = "";
+        let promCb;
+        const promise = new Promise(r => promCb = r);
+        this.stdin.setRawMode(true);
+        this.stdin.resume();
+        let func;
+        let resolved = false;
+        this.stdin.on("data", func = buffer => {
+            let text = buffer.toString();
+            if (text === "\u0003") return options.onTermination();
+            else if (text === "\u0008") {
+                result = result.substring(0, cursor) + result.substring(cursor + 1);
+                cursor--;
+                if (cursor < -1) cursor = -1;
+                options.onBackspace();
+                return;
+            } else if (text[0] === "\u001b") {
+                const type = {A: "up", B: "down", C: "right", D: "left"}[text[2]];
+                options.onArrow(type, text);
+                return;
+            } else if (text === "\n" || text === "\r" || text === "\u0004") {
+                this.stdin.setRawMode(false);
+                this.stdin.pause();
+                options.onEnd();
+                this.stdin.off("data", func);
+                promCb(result);
+                resolved = true;
+                return;
+            } else {
+                result = result.substring(0, cursor + 1) + text + result.substring(cursor + 1);
+                cursor++;
+            }
+            options.onKey(text);
+        });
+        const th = {
+            promise,
+            end: () => resolved || this.stdin.emit("data", "\n")
+        };
+        if (options.timeout && options.timeout > 0) setTimeout(() => th.end(), options.timeout);
+        return th;
+    };
+
+
+    async readPassword(options) {
+        options = Printer.setDefault(options, {expectPromise: true});
+        const th = this.readCustom({
+            onKey: text => this.stdout.write(options.character || "*"),
+            ...options
+        });
+        if (options.expectPromise) return await th.promise;
+        return th;
+    };
+
+
+    async readSelection(list = [], options) {
+        if (list.length === 0) return "";
+        options = Printer.setDefault(options, {expectPromise: true});
+        let selected = 0;
+        this.print(list[selected]);
+        const th = this.readCustom({
+            onKey: r => r,
+            onBackspace: r => r,
+            onArrow: arrow => {
+                let old = selected;
+                if (arrow === "up" || arrow === "left") {
+                    selected--;
+                    if (selected < 0) selected = list.length - 1;
+                } else if (arrow === "down" || arrow === "right") {
+                    selected++;
+                    if (selected > list.length - 1) selected = 0;
+                } else return;
+                this.backspace(list[old].length);
+                this.print(list[selected]);
+            }, ...options
+        });
+        th.rawPromise = th.promise;
+        th.promise = new Promise(async r => {
+            await th.rawPromise;
+            r(selected);
+        });
+        if (options.expectPromise) return await th.promise;
+        return th;
+    };
+
+
+    async readSelectionListed(list = [], options) {
+        options = Printer.setDefault(options, {
+            selectedColor: "black",
+            selectedBackgroundColor: "white",
+            selectedPadding: 0,
+            selectedBold: true,
+            selectedItalic: false,
+            selectedUnderline: false,
+            selectedStrikethrough: false,
+            normalColor: "",
+            normalBackgroundColor: "",
+            normalPadding: 0,
+            normalBold: false,
+            normalItalic: false,
+            normalUnderline: false,
+            normalStrikethrough: false,
+            expectPromise: true
+        });
+        if (list.length === 0) return "";
+        let selected = 0;
+        let typed = "";
+        const update = () => {
+            this.backspace(typed.length);
+            typed = "";
+            let ty = "";
+            for (let i = 0; i < list.length; i++) {
+                typed += list[i];
+                if (selected === i) ty += Printer.paint(list[i], componentHelper("selected", options));
+                else ty += list[i];
+                if (i !== list.length - 1) {
+                    typed += " ";
+                    ty += " ";
+                }
+            }
+            this.print(ty);
+        };
+        update();
+        const th = this.readCustom({
+            onKey: r => r,
+            onBackspace: r => r,
+            onArrow: arrow => {
+                let old = selected;
+                if (arrow === "up" || arrow === "left") {
+                    selected--;
+                    if (selected < 0) selected = list.length - 1;
+                } else if (arrow === "down" || arrow === "right") {
+                    selected++;
+                    if (selected > list.length - 1) selected = 0;
+                } else return;
+                update();
+            }, ...options
+        });
+        th.rawPromise = th.promise;
+        th.promise = new Promise(async r => {
+            await th.rawPromise;
+            r(selected);
+        });
+        if (options.expectPromise) return await th.promise;
+        return th;
+    };
+
+
+    parseCSS(text) {
+        return Printer.parseCSS(text, this.options.alwaysRGB, this.options.paletteName);
+    };
+
+
+    cleanCSS(opts) {
+        return Printer.cleanCSS(opts, this.options.alwaysRGB, this.options.paletteName);
+    };
+
+
+    applyCSS(styles) {
+        return Printer.applyCSS(styles, this.options.alwaysRGB, this.options.paletteName);
+    };
+
+
+    css(text) {
+        return Printer.css(text, this.options.alwaysRGB, this.options.paletteName);
+    };
+
+
+    setOptions(options) {
+        options = Printer.setDefault(options, null);
+        this.options = {...this.options, ...options};
+        return this
+    };
+
+
+    updateBodyStyle = (element = document.body) => {
+        if (!isWeb) throw new Error("updateBodyStyle() method cannot be used outside web.");
+        element.style.background = "#1e1f22";
+        element.style.color = "#bcbec4";
+        element.style.fontFamily = "monospace,serif";
+    }
+
+    static DEFAULT_OPTIONS = DEFAULT_OPTIONS;
+    static DEFAULT_COLOR_PALETTES = COLOR_PALETTES;
+    static DEFAULT_WEB_PALETTES = WEB_PALETTES;
+    static paint = (text, options) => {
+        options = Printer.setDefault(options, {
+            color: "",
+            backgroundColor: "",
+            bold: false,
+            italic: false,
+            underline: false,
+            strikethrough: false,
+            padding: 0,
+            ending: true,
+            alwaysRGB: false,
+            paletteName: "default"
+        });
+        if (options.padding > 0) text = " ".repeat(options.padding) + text + " ".repeat(options.padding);
+        text = Printer.color(text, options.color, options.alwaysRGB, options.paletteName);
+        text = Printer.background(text, options.backgroundColor, options.alwaysRGB, options.paletteName);
+        if (options.bold) text = Color.bold(text);
+        if (options.italic) text = Color.italic(text);
+        if (options.underline) text = Color.underline(text);
+        if (options.strikethrough) text = Color.strikethrough(text);
+        if (!options.ending) text = text.replace("\x1B[39m", "").replace("\x1B[49m", "")
+            .replace("\x1B[22m", "").replace("\x1B[23m", "")
+            .replace("\x1B[24m", "").replace("\x1B[29m", "").replace(" ", "")
+        return text;
+    };
+
+    static stringify(any) {
+        const type = typeof any;
+        if (any === null) return "null";
+        if (type === "string") return any;
+        if (type === "undefined") return "undefined";
+        if (type === "boolean") return any ? "true" : "false";
+        if (type === "object" || type === "symbol" || type === "function") return util.inspect(any);
+        return any.toString();
+    };
+
+    static color(text, color, alwaysRGB = false, paletteName = "default") {
+        if (["default", "bgDefault", "none", "bgNone", "transparent", "bgTransparent", ""].includes(color)) return text;
+        const isBg = color[0] === "b" && color[1] === "g";
+        let rest = isBg ? (color[2] || "").toLowerCase() + color.substring(3) : color;
+        rest = {
+            scarlet: "redBright",
+            crimson: "redBright",
+            vermilion: "redBright",
+            lime: "greenBright",
+            lemon: "yellowBright",
+            canary: "yellowBright",
+            electric: "blueBright",
+            pink: "magentaBright",
+            aqua: "cyanBright"
+        }[rest] || rest;
+        if (alwaysRGB && ansiKeys.includes(color)) {
+            if (isBg) return Printer.background(text, `rgb(${COLOR_PALETTES[paletteName][rest].join(",")})`, true);
+            return Printer.color(text, `rgb(${COLOR_PALETTES[paletteName][rest].join(",")})`, true);
+        }
+        const sup = Color.supportsColor.has16m;
+        // noinspection JSCheckFunctionSignatures
+        const clr = rest.substring(4, rest.length - 1).split(/[, ]/).filter(i => i.length).map(i => i * 1);
+        if (rest.startsWith("rgb(")) {
+            if (!sup) return text;
+            return Color[isBg ? "bgRgb" : "rgb"](...clr)(text);
+        }
+        if (rest.startsWith("hsl(")) {
+            if (!sup) return text;
+            return Color[isBg ? "bgHsl" : "hsl"](...clr)(text);
+        }
+        if (rest.startsWith("hsv(")) {
+            if (!sup) return text;
+            return Color[isBg ? "bgHsv" : "hsv"](...clr)(text);
+        }
+        if (rest[0] === "#") {
+            if (!sup) return text;
+            return Color[isBg ? "bgHex" : "hex"](rest.substring(1))(text);
+        }
+        if (ansiKeys.includes(color) && !Color.supportsColor.hasBasic) return text;
+        if (!ansiKeys.includes(color) && !Color.supportsColor.has16m) return text;
+        if (typeof Color[color] === "function") return Color[color](text);
+        return text;
+    };
+
+    static background = (text, color, alwaysRGB = false, paletteName = "default") => Printer.color(text, "bg" + (color[0] || "").toUpperCase() + (color || "").substring(1), alwaysRGB, paletteName);
+    static setDefault = (got, def) => {
+        if (got === null || typeof got !== "object" || Array.isArray(got)) got = {};
+        if (def) Object.keys(def).forEach(i => {
+            if (got[i] === undefined) got[i] = def[i];
+            else if (typeof def[i] === "object" && def[i] !== null) got[i] = Printer.setDefault(got[i], def[i]);
+        });
+        return got;
+    };
+
+    static makeGlobal(_con = false) {
+        if (_con) global.console = Printer.static;
+        global.Printer = Printer;
+        // noinspection JSValidateTypes
+        global.printer = Printer.static;
+    };
+
+    static new = options => new Printer(options);
+    static create = options => new Printer(options);
+    static substitute = (substitutions, chr, ...texts) => {
+        let ret = "";
+        let colored = false;
+        const NoSub = {};
+        const ColorSub = {value: ""};
+        for (let i = 0; i < texts.length; i++) {
+            const item = texts[i];
+            if (typeof item !== "string") {
+                ret += Printer.stringify(item) + (i === texts.length - 1 ? "" : " ");
+                continue;
+            }
+            if (item.length === 0) {
+                if (i !== 0 && texts[i - 1].length) ret = ret.substring(0, ret.length - 1);
+                continue;
+            }
+            let fl = false;
+            for (let j = 0; j < item.length; j++) {
+                const c = item[j];
+                if (fl) {
+                    fl = false;
+                    if (c === chr) {
+                        ret += chr;
+                        continue;
+                    }
+                    const su = substitutions[c];
+                    if (!su) {
+                        ret += chr + c;
+                        continue;
+                    }
+                    i++;
+                    const u = su(texts[i], {Cancel: NoSub, Color: ColorSub});
+                    if (u === NoSub) {
+                        ret += chr + c;
+                        i--;
+                        continue;
+                    }
+                    if (u === ColorSub) {
+                        colored = true;
+                        ret += u.value;
+                        continue;
+                    }
+                    ret += u;
+                } else {
+                    if (c === chr && i !== texts.length - 1) {
+                        fl = true;
+                        continue;
+                    }
+                    ret += c;
+                }
+            }
+            if (i !== texts.length - 1) ret += " ";
+        }
+        if (colored) ret += ClearAll;
+        return ret;
+    };
+    static parseCSS = (text, alwaysRGB = false, paletteName = "default") => {
+        const styles = {};
+        text.split(";").forEach(i => styles[i.split(":")[0].trim()] = i.split(":").slice(1).join(":").trim());
+        return styles;
+    };
+    static cleanCSS = (opts, alwaysRGB = false, paletteName = "default") => {
+        opts = Printer.setDefault(opts, null);
+        const styles = {
+            font: {
+                color: "",
+                style: {
+                    italic: false
+                },
+                weight: 100
+            },
+            background: {
+                color: ""
+            },
+            textDecoration: {
+                //color: "",
+                line: {
+                    under: false,
+                    //over: false,
+                    through: false
+                }
+            },
+            padding: 0,
+            //margin: 0,
+        };
+        styles.font.color = opts["color"] || opts["font-color"] || opts["fontColor"] || "";
+        styles.background.color = opts["background"] || opts["background-color"] || opts["backgroundColor"] || "";
+        styles.font.weight = opts["font-weight"] || opts["fontWeight"];
+        if (styles.font.weight === "bold" || styles.font.weight === "bolder") styles.font.weight = 600;
+        else if (typeof styles.font.weight !== "number") styles.font.weight = 100;
+        const fontStyle = opts["font-style"] || opts["fontStyle"] || "";
+        styles.font.style.italic = fontStyle.includes("italic") || fontStyle.includes("oblique");
+        const textDecoration = opts["text-decoration"] || opts["textDecoration"] || "";
+        styles.textDecoration.line.under =
+            textDecoration.includes("underline") ||
+            textDecoration.includes("under");
+        styles.textDecoration.line.through =
+            textDecoration.includes("strikethrough") ||
+            textDecoration.includes("strike-through") ||
+            textDecoration.includes("linethrough") ||
+            textDecoration.includes("line-through");
+        styles.padding = opts["padding"];
+        if (typeof styles.padding !== "number" || styles.padding < 0) styles.padding = 0;
+        return styles;
+    };
+    static applyCSS = (styles, alwaysRGB = false, paletteName = "default") => {
+        return ClearAll + Printer.paint(" ", {
+            color: styles.font.color,
+            backgroundColor: styles.background.color,
+            bold: styles.font.weight >= 600,
+            italic: styles.font.style.italic,
+            underline: styles.textDecoration.line.under,
+            strikethrough: styles.textDecoration.line.through,
+            padding: styles.padding,
+            ending: false,
+            alwaysRGB,
+            paletteName
+        });
+    };
+    static css = (text, alwaysRGB = false, paletteName = "default") => Printer.applyCSS(Printer.cleanCSS(Printer.parseCSS(text, alwaysRGB, paletteName), alwaysRGB, paletteName), alwaysRGB, paletteName);
+    static DEFAULT_OUTPUTS = {
+        web: self => ({
             write: s => {
                 const colors = [];
                 let current = [null, null];
-                s = webParser(s, colors, current);
+                s = webParser(s, colors, current, self.options.paletteName);
+                const clr = [];
                 let tmp = [];
-                el.innerText = s;
-                let str = el.innerHTML.replaceAll(" ", "&nbsp;");
-                let amount = 0;
                 for (let i = 0; i < colors.length; i++) {
                     if (colors[i][0] === "") tmp = [];
                     else tmp.push(colors[i][0]);
-                    if (colors[i][0]) {
-                        str = str.replace("%c", `<span style="${tmp.join(";")}">`);
-                        amount++;
-                    } else if (amount > 0) {
-                        str = str.replace("%c", `</span>`);
-                        amount--;
-                    } else str = str.replace("%c", "");
+                    clr.push(tmp.join(";"));
                 }
-                str += `</span>`.repeat(amount);
-                const element = self.options.htmlOut || document.body;
-                if (typeof element === "function") element(str);
-                else element.innerHTML += str;
+                console.log(s, ...clr); // THIS PART IS ONLY RAN IF IT'S ON WEB!
             }
-        };
-    },
-    terminal: () => process.stdout
-};
+        }),
+        html: self => {
+            if (!isWeb) return Printer.DEFAULT_OUTPUTS.terminal();
+            const el = document.createElement("div");
+            return {
+                write: s => {
+                    const colors = [];
+                    let current = [null, null];
+                    s = webParser(s, colors, current, self.options.paletteName);
+                    let tmp = [];
+                    el.innerText = s;
+                    let str = el.innerHTML.replaceAll(" ", "&nbsp;");
+                    let amount = 0;
+                    for (let i = 0; i < colors.length; i++) {
+                        if (colors[i][0] === "") tmp = [];
+                        else tmp.push(colors[i][0]);
+                        if (colors[i][0]) {
+                            str = str.replace("%c", `<span style="${tmp.join(";")}">`);
+                            amount++;
+                        } else if (amount > 0) {
+                            str = str.replace("%c", `</span>`);
+                            amount--;
+                        } else str = str.replace("%c", "");
+                    }
+                    str += `</span>`.repeat(amount);
+                    const element = self.options.htmlOut || document.body;
+                    if (typeof element === "function") element(str);
+                    else element.innerHTML += str;
+                }
+            };
+        },
+        terminal: () => process.stdout
+    };
 
-prototype.inline = Printer.inline = new Printer({newLine: false});
-prototype.raw = Printer.raw = new Printer({format: "%text"});
-prototype.static = Printer.static = prototype.default = Printer.default = new Printer();
-const brackets = prototype.brackets = Printer.brackets = new Printer({
+    static makeWebPalette(palette) {
+        return makeWebPalette(palette);
+    };
+}
+
+Printer.prototype.inline = Printer.inline = new Printer({newLine: false});
+Printer.prototype.raw = Printer.raw = new Printer({format: "%text"});
+Printer.prototype.static = Printer.static = Printer.prototype.default = Printer.default = new Printer();
+const brackets = Printer.prototype.brackets = Printer.brackets = new Printer({
     tagBold: true,
     tagPadding: 0,
     tagColor: "default",
@@ -1514,16 +1588,16 @@ brackets.tags = {
     assert: {text: "ASSERT", color: "gray", textColor: "gray"},
     ready: {text: "READY", color: "magenta", textColor: "magenta"}
 };
-prototype.html = Printer.html = new Printer();
+Printer.prototype.html = Printer.html = new Printer();
 Printer.html.stdout = Printer.DEFAULT_OUTPUTS.html(Printer.html);
 
 const list = ["inline", "raw", "static", "default", "brackets", "html"];
-list.forEach(i => list.forEach(j => prototype[i][j] = prototype[j]));
+list.forEach(i => list.forEach(j => Printer.prototype[i][j] = Printer.prototype[j]));
 
 if (isWeb) {
-    window.printer = prototype.static;
+    window.printer = Printer.prototype.static;
     window.Printer = Printer;
-} else module.exports = prototype.static;
+} else module.exports = Printer.prototype.static;
 
 // FUTURE CSS:
 // [ ] background and its longhand equivalents

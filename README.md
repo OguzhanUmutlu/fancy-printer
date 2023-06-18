@@ -9,10 +9,13 @@ No dependencies! Just one file!
 
 ## [🤩 Don't forget to star the project on GitHub! 🤩](https://github.com/OguzhanUmutlu/fancy-printer)
 
+## 🌟 Table Of Contents 🌟
+
 <!-- TOC -->
 
 * [🌟 Fancy Printer 🌟](#-fancy-printer-)
     * [🤩 Don't forget to star the project on GitHub! 🤩](#-dont-forget-to-star-the-project-on-github--)
+    * [🌟 Table Of Contents 🌟](#-table-of-contents-)
 * [📩 Installation 📩](#-installation-)
     * [✨ Fanciness continues on Web ✨](#-fanciness-continues-on-web-)
 * [🔧 Usage 🔧](#-usage-)
@@ -37,6 +40,7 @@ No dependencies! Just one file!
         * [✨ Inline Preset ✨](#-inline-preset-)
         * [✨ Raw Preset ✨](#-raw-preset-)
         * [✨ Brackets Preset ✨](#-brackets-preset-)
+        * [🌟 HTML Preset 🌟](#-html-preset-)
     * [✨ Logging Options ✨](#-logging-options-)
 
 <!-- TOC -->
@@ -73,7 +77,9 @@ npm install fancy-printer
 ```js
 const printer = require("fancy-printer");
 
-
+const options = {
+    // some options...
+};
 const newPrinter = printer.create(options);
 newPrinter.log("Hello, world!");
 // OR just use it normally
@@ -344,7 +350,7 @@ This preset basically stops putting a line break at the end of logs.
 Can be achieved by doing `printer.options.newLine = false` or just using the existing preset:
 
 ```js
-const {inline} = require("fancy-printer");
+const {inline} = printer;
 
 inline.log("Hello, ");
 inline.print("world!");
@@ -359,7 +365,7 @@ This preset basically removes tags, dates and time from the format.
 Can be achieved by doing `printer.setFormat("%text")` or just using the existing preset:
 
 ```js
-const {raw} = require("fancy-printer");
+const {raw} = printer;
 
 raw.log("Hello, world!");
 raw.log("%cNeeds some coloring!", "color: red");
@@ -374,7 +380,7 @@ This preset is a custom preset requested by a user.
 Can be achieved by using the preset:
 
 ```js
-const {brackets} = require("fancy-printer");
+const {brackets} = printer;
 
 brackets.pass("Passed!");
 brackets.fail("Failed!");
@@ -390,7 +396,7 @@ brackets.assert(5 % 2 === 0, "5 is not divisible by 2!");
 
 ![](https://raw.githubusercontent.com/OguzhanUmutlu/fancy-printer/main/screenshots/img_12.png)
 
-### HTML Preset
+### 🌟 HTML Preset 🌟
 
 This preset is for web.
 
@@ -438,6 +444,7 @@ Makes the log result a html content and puts it into the document.
 | stdout                    | null                   | WriteStream or null                                                                                | The main output stream for the printer                                                                                              |
 | stdin                     | null                   | ReadStream or null                                                                                 | The main input stream for the printer                                                                                               |
 | htmlOut                   | null                   | Element or Function or null                                                                        | If it's an element, adds to that element's innerHTML. If it's a function runs it.                                                   |
+| alwaysRGB                 | false                  | boolean                                                                                            | Whether basic colors should be processed as RGBs.                                                                                   |
 | defaultBackgroundColor    | None                   | Color(string)                                                                                      | The default text background color for the printer                                                                                   |
 | tagColor                  | None                   | Color(string)                                                                                      | The default text color for the tags                                                                                                 |
 | tagBold                   | true                   | boolean                                                                                            | Whether the tag component is bold or not                                                                                            |
@@ -478,6 +485,19 @@ Makes the log result a html content and puts it into the document.
 | timeSecond                | true                   | boolean                                                                                            | Whether the time component has the seconds in it                                                                                    |
 | timeMillisecond           | false                  | boolean                                                                                            | Whether the time component has the milliseconds in it                                                                               |
 | timeMillisecondLength     | 3                      | number                                                                                             | The maximum length of the millisecond part of the time component                                                                    |
+| uptimeColor               | None                   | Color(string)                                                                                      | The text color of the uptime component                                                                                              |
+| uptimeBackgroundColor     | blue                   | Color(string)                                                                                      | The text background color of the uptime                                                                                             |
+| uptimeBold                | true                   | boolean                                                                                            | Whether the uptime component is bold or not                                                                                         |
+| uptimeItalic              | false                  | boolean                                                                                            | Whether the uptime component is italic or not                                                                                       |
+| uptimeUnderline           | false                  | boolean                                                                                            | Whether the uptime component is underlined or not                                                                                   |
+| uptimeStrikethrough       | false                  | boolean                                                                                            | Whether the uptime component is struck-through or not                                                                               |
+| uptimePadding             | 1                      | number                                                                                             | The padding of the uptime component                                                                                                 |
+| uptimeDate                | false                  | boolean                                                                                            | Whether the uptime component has the date in it                                                                                     |
+| uptimeHour                | true                   | boolean                                                                                            | Whether the uptime component has the hours in it                                                                                    |
+| uptimeMinute              | true                   | boolean                                                                                            | Whether the uptime component has the minutes in it                                                                                  |
+| uptimeSecond              | true                   | boolean                                                                                            | Whether the uptime component has the seconds in it                                                                                  |
+| uptimeMillisecond         | true                   | boolean                                                                                            | Whether the uptime component has the milliseconds in it                                                                             |
+| uptimeMillisecondLength   | 2                      | number                                                                                             | The maximum length of the millisecond part of the uptime component                                                                  |
 | groupColor                | None                   | Color(string)                                                                                      | The text color of the group                                                                                                         |
 | groupBackgroundColor      | None                   | Color(string)                                                                                      | The text background color of the group                                                                                              |
 | namespaceColor            | None                   | Color(string)                                                                                      | The text color of the namespace component                                                                                           |

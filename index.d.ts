@@ -17,6 +17,8 @@ type LogOptions = {
     stdout?: StandardOutput | null,
     stdin?: StandardInput | null,
     htmlOut?: Element | ((html: string) => void) | null,
+    alwaysRGB?: boolean,
+    paletteName?: string,
 
     defaultColor?: Color,
     defaultBackgroundColor?: Color,
@@ -124,7 +126,8 @@ type PaintOptions = {
     underline?: boolean,
     strikethrough?: boolean,
     padding?: number,
-    ending?: boolean
+    ending?: boolean,
+    alwaysRGB?: boolean
 };
 type LoggerOptions = {
     folder?: string, radix?: number, divide?: number, format?: string
@@ -194,8 +197,48 @@ type ReadResponse<T> = {
 type StandardOutput = tty.WriteStream & { fd: 1 };
 type StandardInput = tty.ReadStream & { fd: 0 };
 
+type ColorPalette = {
+    black: [number, number, number],
+    red: [number, number, number],
+    green: [number, number, number],
+    yellow: [number, number, number],
+    blue: [number, number, number],
+    magenta: [number, number, number],
+    cyan: [number, number, number],
+    white: [number, number, number],
+    blackBright: [number, number, number],
+    redBright: [number, number, number],
+    greenBright: [number, number, number],
+    yellowBright: [number, number, number],
+    blueBright: [number, number, number],
+    magentaBright: [number, number, number],
+    cyanBright: [number, number, number],
+    whiteBright: [number, number, number]
+};
+
+type WebPalette = {
+    black: [string, string | null, string | null],
+    red: [string, string | null, string | null],
+    green: [string, string | null, string | null],
+    yellow: [string, string | null, string | null],
+    blue: [string, string | null, string | null],
+    magenta: [string, string | null, string | null],
+    cyan: [string, string | null, string | null],
+    white: [string, string | null, string | null],
+    blackBright: [string, string | null, string | null],
+    redBright: [string, string | null, string | null],
+    greenBright: [string, string | null, string | null],
+    yellowBright: [string, string | null, string | null],
+    blueBright: [string, string | null, string | null],
+    magentaBright: [string, string | null, string | null],
+    cyanBright: [string, string | null, string | null],
+    whiteBright: [string, string | null, string | null]
+};
+
 declare class FancyPrinter {
     static DEFAULT_OPTIONS?: LogOptions;
+    static DEFAULT_COLOR_PALETTES?: Record<string, ColorPalette>;
+    static DEFAULT_WEB_PALETTES?: Record<string, WebPalette>;
 
     static DEFAULT_OUTPUTS: Record<string, (self: FancyPrinter) => { write: (text: string) => void }> | {
         terminal: () => StandardOutput
@@ -244,8 +287,10 @@ declare class FancyPrinter {
 
     static stringify(any: any): string;
 
+    static color(text: string, color: Color, alwaysRGB: boolean): string;
     static color(text: string, color: Color): string;
 
+    static background(text: string, color: Color, alwaysRGB: boolean): string;
     static background(text: string, color: Color): string;
 
     static setDefault(got, default_): void;
@@ -437,6 +482,8 @@ declare class FancyPrinter {
 
     updateBodyStyle(element: Element): void;
     updateBodyStyle(): void;
+
+    static makeWebPalette(palette: ColorPalette): WebPalette;
 }
 
 declare global {
