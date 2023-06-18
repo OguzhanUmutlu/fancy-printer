@@ -235,7 +235,10 @@ const DEFAULT_OPTIONS = {
     componentsEnabled: true,
     newLine: true,
     namespace: "",
-    colorEnabled: true,
+    stylingEnabled: true,
+    stdout: null,
+    stdin: null,
+    htmlOut: null,
 
     defaultColor: "",
     defaultBackgroundColor: "",
@@ -379,41 +382,41 @@ const webParser = (s, colors, current) => {
                 hidden: ["opacity: 0"],
                 strikethrough: ["text-decoration: line-through"],
 
-                black: ["color: black", "black"],
-                red: ["color: red", "red"],
-                green: ["color: green", "green"],
-                yellow: ["color: yellow", "yellow"],
-                blue: ["color: blue", "blue"],
-                magenta: ["color: magenta", "cyan"],
-                cyan: ["color: cyan", "cyan"],
-                white: ["color: white", "white"],
+                black: ["color: #000000", "#000000"],
+                red: ["color: #772e2c", "#772e2c"],
+                green: ["color: #39511f", "#39511f"],
+                yellow: ["color: #5c4f17", "#5c4f17"],
+                blue: ["color: #245980", "#245980"],
+                magenta: ["color: #5c4069", "#5c4069"],
+                cyan: ["color: #154f4f", "#154f4f"],
+                white: ["color: #616161", "#616161"],
 
-                blackBright: ["color: rgb(128, 128, 128)", "rgb(128, 128, 128)"],
-                redBright: ["color: rgb(255, 0, 0)", "rgb(255, 0, 0)"],
-                greenBright: ["color: rgb(0, 255, 0)", "rgb(0, 255, 0)"],
-                yellowBright: ["color: rgb(255, 255, 0)", "rgb(255, 255, 0)"],
-                blueBright: ["color: rgb(0, 0, 255)", "rgb(0, 0, 255)"],
-                magentaBright: ["color: rgb(255, 0, 255)", "rgb(255, 0, 255)"],
-                cyanBright: ["color: rgb(0, 255, 255)", "rgb(0, 255, 255)"],
-                whiteBright: ["color: rgb(255, 255, 255)", "rgb(255, 255, 255)"],
+                blackBright: ["color: #424242", "#424242"],
+                redBright: ["color: #b82421", "#b82421"],
+                greenBright: ["color: #458500", "#458500"],
+                yellowBright: ["color: #a87b00", "#a87b00"],
+                blueBright: ["color: #1778bd", "#1778bd"],
+                magentaBright: ["color: #b247b2", "#b247b2"],
+                cyanBright: ["color: #006e6e", "#006e6e"],
+                whiteBright: ["color: #ffffff", "#ffffff"],
 
-                bgBlack: ["background-color: black", null, "black"],
-                bgRed: ["background-color: red", null, "red"],
-                bgGreen: ["background-color: green", null, "green"],
-                bgYellow: ["background-color: yellow", null, "yellow"],
-                bgBlue: ["background-color: blue", null, "blue"],
-                bgMagenta: ["background-color: magenta", null, "magenta"],
-                bgCyan: ["background-color: cyan", null, "cyan"],
-                bgWhite: ["background-color: white", null, "white"],
+                bgBlack: ["background-color: #000000", null, "#000000"],
+                bgRed: ["background-color: #772e2c", null, "#772e2c"],
+                bgGreen: ["background-color: #39511f", null, "#39511f"],
+                bgYellow: ["background-color: #5c4f17", null, "#5c4f17"],
+                bgBlue: ["background-color: #245980", null, "#245980"],
+                bgMagenta: ["background-color: #5c4069", null, "#5c4069"],
+                bgCyan: ["background-color: #154f4f", null, "#154f4f"],
+                bgWhite: ["background-color: #616161", null, "#616161"],
 
-                bgBlackBright: ["background-color: rgb(128, 128, 128)", null, "rgb(128, 128, 128)"],
-                bgRedBright: ["background-color: rgb(255, 0, 0)", null, "rgb(255, 0, 0)"],
-                bgGreenBright: ["background-color: rgb(0, 255, 0)", null, "rgb(0, 255, 0)"],
-                bgYellowBright: ["background-color: rgb(255, 255, 0)", null, "rgb(255, 255, 0)"],
-                bgBlueBright: ["background-color: rgb(0, 0, 255)", null, "rgb(0, 0, 255)"],
-                bgMagentaBright: ["background-color: rgb(255, 0, 255)", null, "rgb(255, 0, 255)"],
-                bgCyanBright: ["background-color: rgb(0, 255, 255)", null, "rgb(0, 255, 255)"],
-                bgWhiteBright: ["background-color: rgb(255, 255, 255)", null, "rgb(255, 255, 255)"]
+                bgBlackBright: ["background-color: #424242", null, "#424242"],
+                bgRedBright: ["background-color: #b82421", null, "#b82421"],
+                bgGreenBright: ["background-color: #458500", null, "#458500"],
+                bgYellowBright: ["background-color: #a87b00", null, "#a87b00"],
+                bgBlueBright: ["background-color: #1778bd", null, "#1778bd"],
+                bgMagentaBright: ["background-color: #b247b2", null, "#b247b2"],
+                bgCyanBright: ["background-color: #006e6e", null, "#006e6e"],
+                bgWhiteBright: ["background-color: #ffffff", null, "#ffffff"]
             }[m];
             current[0] = pushing[1] || current[0];
             current[1] = pushing[2] || current[1];
@@ -435,7 +438,6 @@ function CustomError(message) {
 CustomError.prototype = Object.create(Error.prototype);
 CustomError.prototype.constructor = CustomError;
 
-
 /**
  * @param {Object} options
  * @returns {Object<any, any> | any}
@@ -456,22 +458,8 @@ function Printer(options = {}) {
         };
     }
     self._periodicOptions = null;
-    self.stdin = isWeb ? null : (process.stdin || process.openStdin());
-    self.stdout = isWeb ? {
-        write: s => {
-            const colors = [];
-            let current = [null, null];
-            s = webParser(s, colors, current);
-            const clr = [];
-            let tmp = [];
-            for (let i = 0; i < colors.length; i++) {
-                if (colors[i][0] === "") tmp = [];
-                else tmp.push(colors[i][0]);
-                clr.push(tmp.join(";"));
-            }
-            console.log(s, ...clr); // THIS PART IS ONLY RAN IF IT'S ON WEB! If it's not web: --\
-        } //                                                                                     |
-    } : process.stdout; // <--------------------------------------------------------------------/
+    self.stdin = options.stdin || (isWeb ? null : (process.stdin || process.openStdin()));
+    self.stdout = options.stdout || (isWeb ? Printer.DEFAULT_OUTPUTS.web(self) : Printer.DEFAULT_OUTPUTS.terminal(self));
     self.tags = {
         pass: {text: "PASS", backgroundColor: "greenBright", textColor: "green"},
         fail: {text: "FAIL", backgroundColor: "redBright", textColor: "redBright"},
@@ -841,7 +829,7 @@ prototype.log = function (self, ...texts) {
         line = Printer.color(line, options.defaultColor);
         line = Printer.color(line, options.defaultBackgroundColor);
         const plainText = " ".repeat(self._group) + plain.replaceAll(self.chr + "text", l).replaceAll(/\x1B\[\d+m/g, "") + (options.newLine ? "\n" : "");
-        if (options.colorEnabled) self[options.newLine ? "println" : "print"](Printer.paint(" ".repeat(self._group), componentHelper("group", options)) + colored.replaceAll(self.chr + "text", line));
+        if (options.stylingEnabled) self[options.newLine ? "println" : "print"](Printer.paint(" ".repeat(self._group), componentHelper("group", options)) + colored.replaceAll(self.chr + "text", line));
         else self[options.newLine ? "println" : "print"](plainText);
         self.streams.forEach(stream => stream.write(plainText));
     });
@@ -1230,6 +1218,13 @@ prototype.setOptions = function (self, options) {
     return self;
 };
 
+prototype.updateBodyStyle = (self, element = document.body) => {
+    if (!isWeb) throw new Error("updateBodyStyle() method cannot be used outside web.");
+    element.style.background = "#1e1f22";
+    element.style.color = "#bcbec4";
+    element.style.fontFamily = "monospace,serif";
+}
+
 Printer.DEFAULT_OPTIONS = DEFAULT_OPTIONS;
 
 Printer.paint = (text, options) => {
@@ -1443,6 +1438,54 @@ Printer.applyCSS = styles => {
 };
 
 Printer.css = text => Printer.applyCSS(Printer.cleanCSS(Printer.parseCSS(text)));
+Printer.DEFAULT_OUTPUTS = {
+    web: self => ({
+        write: s => {
+            const colors = [];
+            let current = [null, null];
+            s = webParser(s, colors, current);
+            const clr = [];
+            let tmp = [];
+            for (let i = 0; i < colors.length; i++) {
+                if (colors[i][0] === "") tmp = [];
+                else tmp.push(colors[i][0]);
+                clr.push(tmp.join(";"));
+            }
+            console.log(s, ...clr); // THIS PART IS ONLY RAN IF IT'S ON WEB!
+        }
+    }),
+    html: self => {
+        if (!isWeb) return Printer.DEFAULT_OUTPUTS.terminal();
+        const el = document.createElement("div");
+        return {
+            write: s => {
+                const colors = [];
+                let current = [null, null];
+                s = webParser(s, colors, current);
+                let tmp = [];
+                el.innerText = s;
+                let str = el.innerHTML.replaceAll(" ", "&nbsp;");
+                let amount = 0;
+                for (let i = 0; i < colors.length; i++) {
+                    if (colors[i][0] === "") tmp = [];
+                    else tmp.push(colors[i][0]);
+                    if (colors[i][0]) {
+                        str = str.replace("%c", `<span style="${tmp.join(";")}">`);
+                        amount++;
+                    } else if (amount > 0) {
+                        str = str.replace("%c", `</span>`);
+                        amount--;
+                    } else str = str.replace("%c", "");
+                }
+                str += `</span>`.repeat(amount);
+                const element = self.options.htmlOut || document.body;
+                if (typeof element === "function") element(str);
+                else element.innerHTML += str;
+            }
+        };
+    },
+    terminal: () => process.stdout
+};
 
 prototype.inline = Printer.inline = new Printer({newLine: false});
 prototype.raw = Printer.raw = new Printer({format: "%text"});
@@ -1471,8 +1514,10 @@ brackets.tags = {
     assert: {text: "ASSERT", color: "gray", textColor: "gray"},
     ready: {text: "READY", color: "magenta", textColor: "magenta"}
 };
+prototype.html = Printer.html = new Printer();
+Printer.html.stdout = Printer.DEFAULT_OUTPUTS.html(Printer.html);
 
-const list = ["inline", "raw", "static", "default", "brackets"];
+const list = ["inline", "raw", "static", "default", "brackets", "html"];
 list.forEach(i => list.forEach(j => prototype[i][j] = prototype[j]));
 
 if (isWeb) {

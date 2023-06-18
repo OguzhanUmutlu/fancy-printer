@@ -10,33 +10,35 @@ No dependencies! Just one file!
 ## [🤩 Don't forget to star the project on GitHub! 🤩](https://github.com/OguzhanUmutlu/fancy-printer)
 
 <!-- TOC -->
+
 * [🌟 Fancy Printer 🌟](#-fancy-printer-)
-  * [🤩 Don't forget to star the project on GitHub! 🤩](#-dont-forget-to-star-the-project-on-github--)
+    * [🤩 Don't forget to star the project on GitHub! 🤩](#-dont-forget-to-star-the-project-on-github--)
 * [📩 Installation 📩](#-installation-)
-  * [✨ Fanciness continues on Web ✨](#-fanciness-continues-on-web-)
+    * [✨ Fanciness continues on Web ✨](#-fanciness-continues-on-web-)
 * [🔧 Usage 🔧](#-usage-)
-  * [✨ Creating a printer ✨](#-creating-a-printer-)
-  * [✨ Default tags ✨](#-default-tags-)
-  * [✨ Creating tags ✨](#-creating-tags-)
-  * [✨ Formatting & Using/adding components & Changing the chr ✨](#-formatting--usingadding-components--changing-the-chr-)
-  * [✨ Making the printer global ✨](#-making-the-printer-global-)
-  * [✨ Logging to a specific file ✨](#-logging-to-a-specific-file-)
-  * [✨ Logging to a file *periodically* ✨](#-logging-to-a-file-periodically-)
-    * [✨ Formatting arguments ✨](#-formatting-arguments-)
-    * [✨ Padding on formatting arguments ✨](#-padding-on-formatting-arguments-)
-  * [✨ Logging to a file with a *hash* ✨](#-logging-to-a-file-with-a-hash-)
-  * [✨ Substitutions ✨](#-substitutions-)
-    * [✨ %o, %O, %s, %v ✨](#-o-o-s-v-)
-    * [✨ %d, %i ✨](#-d-i-)
-    * [✨ %f ✨](#-f-)
-    * [✨ %c ✨](#-c-)
-  * [✨ Reading input ✨](#-reading-input-)
-  * [✨ Utilities ✨](#-utilities-)
-  * [✨ Presets ✨](#-presets-)
-    * [✨ Inline Preset ✨](#-inline-preset-)
-    * [✨ Raw Preset ✨](#-raw-preset-)
-    * [✨ Brackets Preset ✨](#-brackets-preset-)
-  * [✨ Logging Options ✨](#-logging-options-)
+    * [✨ Creating a printer ✨](#-creating-a-printer-)
+    * [✨ Default tags ✨](#-default-tags-)
+    * [✨ Creating tags ✨](#-creating-tags-)
+    * [✨ Formatting & Using/adding components & Changing the chr ✨](#-formatting--usingadding-components--changing-the-chr-)
+    * [✨ Making the printer global ✨](#-making-the-printer-global-)
+    * [✨ Logging to a specific file ✨](#-logging-to-a-specific-file-)
+    * [✨ Logging to a file *periodically* ✨](#-logging-to-a-file-periodically-)
+        * [✨ Formatting arguments ✨](#-formatting-arguments-)
+        * [✨ Padding on formatting arguments ✨](#-padding-on-formatting-arguments-)
+    * [✨ Logging to a file with a *hash* ✨](#-logging-to-a-file-with-a-hash-)
+    * [✨ Substitutions ✨](#-substitutions-)
+        * [✨ %o, %O, %s, %v ✨](#-o-o-s-v-)
+        * [✨ %d, %i ✨](#-d-i-)
+        * [✨ %f ✨](#-f-)
+        * [✨ %c ✨](#-c-)
+    * [✨ Reading input ✨](#-reading-input-)
+    * [✨ Utilities ✨](#-utilities-)
+    * [✨ Presets ✨](#-presets-)
+        * [✨ Inline Preset ✨](#-inline-preset-)
+        * [✨ Raw Preset ✨](#-raw-preset-)
+        * [✨ Brackets Preset ✨](#-brackets-preset-)
+    * [✨ Logging Options ✨](#-logging-options-)
+
 <!-- TOC -->
 
 ***
@@ -388,6 +390,39 @@ brackets.assert(5 % 2 === 0, "5 is not divisible by 2!");
 
 ![](https://raw.githubusercontent.com/OguzhanUmutlu/fancy-printer/main/screenshots/img_12.png)
 
+### HTML Preset
+
+This preset is for web.
+
+Makes the log result a html content and puts it into the document.
+
+```html
+
+<script>
+    const {html} = printer;
+
+    html.updateBodyStyle(document.body);
+
+    html.pass("Passed!");
+    html.fail("Failed!");
+    html.error("An error occurred!");
+    html.warn("Something might go wrong!");
+    html.info("This is a message!");
+    html.debug("Check the line 5!");
+    html.notice("Attention please!");
+    html.log("An original log!");
+    html.ready("I am ready!");
+    html.assert(5 % 2 === 0, "5 is not divisible by 2!");
+
+    html.options.htmlOut = a => printer.warning(a);
+
+    html.log("test!");
+    printer.notice("^^^ The text up there has been logged by using html.options.htmlOut! ^^^");
+</script>
+```
+
+![](https://raw.githubusercontent.com/OguzhanUmutlu/fancy-printer/main/screenshots/img_13.png)
+
 ***
 
 ## ✨ Logging Options ✨
@@ -398,7 +433,11 @@ brackets.assert(5 % 2 === 0, "5 is not divisible by 2!");
 | substitutionsEnabled      | true                   | boolean                                                                                            | Whether the substitutions should work                                                                                               |
 | componentsEnabled         | true                   | boolean                                                                                            | Whether the components should work                                                                                                  |
 | newLine                   | true                   | boolean                                                                                            | Whether the logger should print the text with a line break at the end                                                               |
-| defaultColor              | None                   | Color(string)                                                                                      | The default text color for the printer                                                                                              |
+| namespace                 | ""                     | string                                                                                             | The text for %namespace tag                                                                                                         |
+| stylingEnabled            | true                   | boolean                                                                                            | Whether the stylings like colors or decorations should work                                                                         |
+| stdout                    | null                   | WriteStream or null                                                                                | The main output stream for the printer                                                                                              |
+| stdin                     | null                   | ReadStream or null                                                                                 | The main input stream for the printer                                                                                               |
+| htmlOut                   | null                   | Element or Function or null                                                                        | If it's an element, adds to that element's innerHTML. If it's a function runs it.                                                   |
 | defaultBackgroundColor    | None                   | Color(string)                                                                                      | The default text background color for the printer                                                                                   |
 | tagColor                  | None                   | Color(string)                                                                                      | The default text color for the tags                                                                                                 |
 | tagBold                   | true                   | boolean                                                                                            | Whether the tag component is bold or not                                                                                            |
@@ -441,4 +480,38 @@ brackets.assert(5 % 2 === 0, "5 is not divisible by 2!");
 | timeMillisecondLength     | 3                      | number                                                                                             | The maximum length of the millisecond part of the time component                                                                    |
 | groupColor                | None                   | Color(string)                                                                                      | The text color of the group                                                                                                         |
 | groupBackgroundColor      | None                   | Color(string)                                                                                      | The text background color of the group                                                                                              |
-
+| namespaceColor            | None                   | Color(string)                                                                                      | The text color of the namespace component                                                                                           |
+| namespaceBackgroundColor  | blue                   | Color(string)                                                                                      | The text background color of the namespace                                                                                          |
+| namespaceBold             | true                   | boolean                                                                                            | Whether the namespace component is bold or not                                                                                      |
+| namespaceItalic           | false                  | boolean                                                                                            | Whether the namespace component is italic or not                                                                                    |
+| namespaceUnderline        | false                  | boolean                                                                                            | Whether the namespace component is underlined or not                                                                                |
+| namespaceStrikethrough    | false                  | boolean                                                                                            | Whether the namespace component is struck-through or not                                                                            |
+| namespacePadding          | 1                      | number                                                                                             | The padding of the namespace component                                                                                              |
+| filenameColor             | None                   | Color(string)                                                                                      | The text color of the filename component                                                                                            |
+| filenameBackgroundColor   | blue                   | Color(string)                                                                                      | The text background color of the filename                                                                                           |
+| filenameBold              | true                   | boolean                                                                                            | Whether the filename component is bold or not                                                                                       |
+| filenameItalic            | false                  | boolean                                                                                            | Whether the filename component is italic or not                                                                                     |
+| filenameUnderline         | false                  | boolean                                                                                            | Whether the filename component is underlined or not                                                                                 |
+| filenameStrikethrough     | false                  | boolean                                                                                            | Whether the filename component is struck-through or not                                                                             |
+| filenamePadding           | 1                      | number                                                                                             | The padding of the filename component                                                                                               |
+| lineColor                 | None                   | Color(string)                                                                                      | The text color of the line component                                                                                                |
+| lineBackgroundColor       | blue                   | Color(string)                                                                                      | The text background color of the line                                                                                               |
+| lineBold                  | true                   | boolean                                                                                            | Whether the line component is bold or not                                                                                           |
+| lineItalic                | false                  | boolean                                                                                            | Whether the line component is italic or not                                                                                         |
+| lineUnderline             | false                  | boolean                                                                                            | Whether the line component is underlined or not                                                                                     |
+| lineStrikethrough         | false                  | boolean                                                                                            | Whether the line component is struck-through or not                                                                                 |
+| linePadding               | 1                      | number                                                                                             | The padding of the line component                                                                                                   |
+| columnColor               | None                   | Color(string)                                                                                      | The text color of the column component                                                                                              |
+| columnBackgroundColor     | blue                   | Color(string)                                                                                      | The text background color of the column                                                                                             |
+| columnBold                | true                   | boolean                                                                                            | Whether the column component is bold or not                                                                                         |
+| columnItalic              | false                  | boolean                                                                                            | Whether the column component is italic or not                                                                                       |
+| columnUnderline           | false                  | boolean                                                                                            | Whether the column component is underlined or not                                                                                   |
+| columnStrikethrough       | false                  | boolean                                                                                            | Whether the column component is struck-through or not                                                                               |
+| columnPadding             | 1                      | number                                                                                             | The padding of the column component                                                                                                 |
+| stackColor                | None                   | Color(string)                                                                                      | The text color of the stack component                                                                                               |
+| stackBackgroundColor      | blue                   | Color(string)                                                                                      | The text background color of the stack                                                                                              |
+| stackBold                 | true                   | boolean                                                                                            | Whether the stack component is bold or not                                                                                          |
+| stackItalic               | false                  | boolean                                                                                            | Whether the stack component is italic or not                                                                                        |
+| stackUnderline            | false                  | boolean                                                                                            | Whether the stack component is underlined or not                                                                                    |
+| stackStrikethrough        | false                  | boolean                                                                                            | Whether the stack component is struck-through or not                                                                                |
+| stackPadding              | 1                      | number                                                                                             | The padding of the stack component                                                                                                  |

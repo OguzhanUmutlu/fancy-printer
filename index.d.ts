@@ -13,7 +13,10 @@ type LogOptions = {
     componentsEnabled?: boolean,
     newLine?: boolean,
     namespace?: string,
-    colorEnabled?: boolean,
+    stylingEnabled?: boolean,
+    stdout?: StandardOutput | null,
+    stdin?: StandardInput | null,
+    htmlOut?: Element | ((html: string) => void) | null,
 
     defaultColor?: Color,
     defaultBackgroundColor?: Color,
@@ -188,20 +191,31 @@ type ReadResponse<T> = {
     promise: Promise<T>,
     end: () => void
 };
+type StandardOutput = tty.WriteStream & { fd: 1 };
+type StandardInput = tty.ReadStream & { fd: 0 };
 
 declare class FancyPrinter {
-    static DEFAULT_options?: LogOptions;
+    static DEFAULT_OPTIONS?: LogOptions;
+
+    static DEFAULT_OUTPUTS: Record<string, (self: FancyPrinter) => { write: (text: string) => void }> | {
+        terminal: () => StandardOutput
+        web: () => { write: (text: string) => void }
+        html: () => { write: (text: string) => void }
+    };
 
     static static: FancyPrinter;
     static raw: FancyPrinter;
     static brackets: FancyPrinter;
     static inline: FancyPrinter;
+    static html: FancyPrinter;
     static: FancyPrinter;
     raw: FancyPrinter;
     brackets: FancyPrinter;
     inline: FancyPrinter;
+    html: FancyPrinter;
 
-    stdout: tty.WriteStream & { fd: 1 };
+    stdout: StandardOutput;
+    stdin: StandardInput;
     Printer: typeof FancyPrinter;
     tags: Record<string, TagComponent> | {
         pass: TagComponent,
@@ -420,6 +434,9 @@ declare class FancyPrinter {
     setOptions(options: LogOptions): FancyPrinter;
 
     namespace(namespace: string): FancyPrinter;
+
+    updateBodyStyle(element: Element): void;
+    updateBodyStyle(): void;
 }
 
 declare global {
