@@ -1,6 +1,10 @@
 // noinspection JSUnusedGlobalSymbols,JSUnusedLocalSymbols
 
-const isWeb = typeof require === "undefined";
+// noinspection JSDeprecatedSymbols
+const isReactNative = typeof navigator !== "undefined" && navigator.product === "ReactNative";
+const isReactNativeDev = isReactNative && __DEV__;
+const isWeb = typeof require === "undefined" || isReactNative;
+const req = r => isWeb ? null : (global["require"] || require)(r);
 
 // Credits to: https://npmjs.com/package/color-name
 const knownColors = {
@@ -170,7 +174,7 @@ if (isWeb) {
         has256: false,
         has16m: false
     };
-} else Color.supportsColor = require("./vendor/supports-color/index.js").stdout;
+} else Color.supportsColor = req("./vendor/supports-color/index.js").stdout;
 Object.keys(knownColors).forEach(k => {
     Color[k] = Color.rgb(...knownColors[k]);
     Color["bg" + k[0].toUpperCase() + k.substring(1)] = Color.bgRgb(...knownColors[k]);
@@ -181,11 +185,14 @@ ansiKeys.forEach((k, i) => {
     Color[k] = r => r ? (isWeb ? `\x1B[99;${i}m${r}\x1B[39m` : `\x1B[${l[0]}m${r}\x1B[${l[1]}m`) : "";
 });
 
-const fs = isWeb ? null : require("fs");
-const path = isWeb ? null : require("path");
-const util = isWeb ? {
-    inspect: (a, _, __, clr) => JSON.stringify(a) // todo
-} : require("util");
+const fs = req("fs");
+const path = req("path");
+const _util = {
+    inspect: (...a) => {
+        if (isWeb) return JSON.stringify(a[0]); // todo
+        return req("util").inspect(...a);
+    }
+};
 
 const fnCheck = (s, ...args) => typeof s === "function" ? s(...args) : s;
 const ClearAll = isWeb ? Color.reset("$").replace("$", "") : "\x1B[39m\x1B[49m\x1B[22m\x1B[23m\x1B[24m\x1B[29m";
@@ -960,7 +967,7 @@ class Printer {
             columnNames.push("Value");
         }
         const table = [[["", "", ""], ...columnNames.map(i => [i, i, i])]];
-        const ins = (s, color = true) => require("util").inspect(s, false, null, color);
+        const ins = (s, color = true) => _util.inspect(s, false, null, color);
         keys.forEach((key, index) => {
             const value = values[index];
             const objKeys = typeof value === "object" ? Object.keys(value) : [];
@@ -985,6 +992,7 @@ class Printer {
 
 
     table(object, columns = null, tagName = "log") {
+        if (isWeb) return console.table(object, columns);
         const result = this.tableRaw(object, columns);
         if (result) result.forEach(i => tagName ? this.tag(tagName, i) : this.println(i));
         else tagName ? this.tag(tagName, object) : this.println(object);
@@ -1321,7 +1329,7 @@ class Printer {
         if (type === "string") return any;
         if (type === "undefined") return "undefined";
         if (type === "boolean") return any ? "true" : "false";
-        if (type === "object" || type === "symbol" || type === "function") return util.inspect(any);
+        if (type === "object" || type === "symbol" || type === "function") return _util.inspect(any);
         return any.toString();
     };
 
@@ -1524,6 +1532,7 @@ class Printer {
             }
         }),
         html: self => {
+            if (isReactNative) return Printer.DEFAULT_OUTPUTS.web();
             if (!isWeb) return Printer.DEFAULT_OUTPUTS.terminal();
             const el = document.createElement("div");
             return {
@@ -1553,7 +1562,8 @@ class Printer {
                 }
             };
         },
-        terminal: () => process.stdout
+        terminal: () => process.stdout,
+        reactNative: () => null
     };
 
     static makeWebPalette(palette) {
