@@ -823,7 +823,6 @@ class Printer {
         return Printer.substitute(this.substitutions, this.chr, ...texts);
     };
 
-
     log(...texts) {
         const options = this.options;
         let text = "";
@@ -992,7 +991,7 @@ class Printer {
 
 
     table(object, columns = null, tagName = "log") {
-        if (isWeb) return console.table(object, columns);
+        if (isWeb) return console.table(object, columns); // THIS PART IS ONLY RAN IF IT'S ON WEB!
         const result = this.tableRaw(object, columns);
         if (result) result.forEach(i => tagName ? this.tag(tagName, i) : this.println(i));
         else tagName ? this.tag(tagName, object) : this.println(object);
@@ -1334,7 +1333,7 @@ class Printer {
     };
 
     static color(text, color, alwaysRGB = false, paletteName = "default") {
-        if (["default", "bgDefault", "none", "bgNone", "transparent", "bgTransparent", ""].includes(color)) return text;
+        if (!color || ["default", "bgDefault", "none", "bgNone", "transparent", "bgTransparent"].includes(color)) return text;
         const isBg = color[0] === "b" && color[1] === "g";
         let rest = isBg ? (color[2] || "").toLowerCase() + color.substring(3) : color;
         rest = {
