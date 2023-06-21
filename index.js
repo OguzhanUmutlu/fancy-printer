@@ -196,7 +196,7 @@ const _util = {
 
 const fnCheck = (s, ...args) => typeof s === "function" ? s(...args) : s;
 const ClearAll = isWeb ? Color.reset("$").replace("$", "") : "\x1B[39m\x1B[49m\x1B[22m\x1B[23m\x1B[24m\x1B[29m";
-const cH = (opts, name, c) => fnCheck(opts[name ? name + c : c.toLowerCase()]);
+const cH = (opts, name, c) => fnCheck(opts[name ? name + c : c.toLowerCase()], opts);
 const componentHelper = (name, opts) => ({
     color: cH(opts, name, "Color"),
     backgroundColor: cH(opts, name, "BackgroundColor"),
