@@ -1569,6 +1569,14 @@ class Printer {
     static makeWebPalette(palette) {
         return makeWebPalette(palette);
     };
+
+    static colorTag(opts) {
+        return Printer.css("color: " + brackets.getTag(opts.tag || "log").color);
+    };
+
+    static backgroundColorTag(opts) {
+        return Printer.css("background-color: " + brackets.getTag(opts.tag || "log").backgroundColor);
+    };
 }
 
 Printer.prototype.inline = Printer.inline = new Printer({newLine: false});
@@ -1584,7 +1592,7 @@ const brackets = Printer.prototype.brackets = Printer.brackets = new Printer({
     timePadding: 0,
     namespaceColor: "",
     namespaceBackgroundColor: "",
-    format: opts => Printer.css("color: " + brackets.getTag(opts.tag || "log").color) + (opts.namespace ? "[%namespace\b \b] | " : "") + "[%date] | [%time] [%tag] > %text" + ClearAll
+    format: opts => Printer.colorTag(opts) + (opts.namespace ? "[%namespace\b \b] | " : "") + "[%date] | [%time] [%tag] > %text" + ClearAll
 });
 brackets.tags = {
     pass: {text: "PASS", textColor: "green", color: "green"},
