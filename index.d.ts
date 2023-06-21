@@ -484,6 +484,10 @@ declare class FancyPrinter {
     updateBodyStyle(): void;
 
     static makeWebPalette(palette: ColorPalette): WebPalette;
+
+    static colorTag(options: LogOptions): string;
+
+    static backgroundColorTag(options: LogOptions): string;
 }
 
 declare global {
