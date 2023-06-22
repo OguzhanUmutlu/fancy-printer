@@ -19,6 +19,7 @@ type LogOptions = {
     htmlOut?: Element | ((html: string) => void) | null,
     alwaysRGB?: boolean,
     paletteName?: string,
+    disabledTags?: string[],
 
     defaultColor?: Color,
     defaultBackgroundColor?: Color,

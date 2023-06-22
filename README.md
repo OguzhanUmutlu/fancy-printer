@@ -12,35 +12,37 @@ No dependencies! Just one file!
 ## 🌟 Table Of Contents 🌟
 
 <!-- TOC -->
+
 * [🌟 Fancy Printer 🌟](#-fancy-printer-)
-  * [🤩 Don't forget to star the project on GitHub! 🤩](#-dont-forget-to-star-the-project-on-github--)
-  * [🌟 Table Of Contents 🌟](#-table-of-contents-)
+    * [🤩 Don't forget to star the project on GitHub! 🤩](#-dont-forget-to-star-the-project-on-github--)
+    * [🌟 Table Of Contents 🌟](#-table-of-contents-)
 * [📩 Installation 📩](#-installation-)
-  * [✨ Fanciness continues on Web ✨](#-fanciness-continues-on-web-)
+    * [✨ Fanciness continues on Web ✨](#-fanciness-continues-on-web-)
 * [🔧 Usage 🔧](#-usage-)
-  * [✨ Creating a printer ✨](#-creating-a-printer-)
-  * [✨ Default tags ✨](#-default-tags-)
-  * [✨ Creating tags ✨](#-creating-tags-)
-  * [✨ Formatting & Using/adding components & Changing the chr ✨](#-formatting--usingadding-components--changing-the-chr-)
-  * [✨ Making the printer global ✨](#-making-the-printer-global-)
-  * [✨ Logging to a specific file ✨](#-logging-to-a-specific-file-)
-  * [✨ Logging to a file *periodically* ✨](#-logging-to-a-file-periodically-)
-    * [✨ Formatting arguments ✨](#-formatting-arguments-)
-    * [✨ Padding on formatting arguments ✨](#-padding-on-formatting-arguments-)
-  * [✨ Logging to a file with a *hash* ✨](#-logging-to-a-file-with-a-hash-)
-  * [✨ Substitutions ✨](#-substitutions-)
-    * [✨ %o, %O, %s, %v ✨](#-o-o-s-v-)
-    * [✨ %d, %i ✨](#-d-i-)
-    * [✨ %f ✨](#-f-)
-    * [✨ %c ✨](#-c-)
-  * [✨ Reading input ✨](#-reading-input-)
-  * [✨ Utilities ✨](#-utilities-)
-  * [✨ Presets ✨](#-presets-)
-    * [✨ Inline Preset ✨](#-inline-preset-)
-    * [✨ Raw Preset ✨](#-raw-preset-)
-    * [✨ Brackets Preset ✨](#-brackets-preset-)
-    * [🌟 HTML Preset 🌟](#-html-preset-)
-  * [✨ Logging Options ✨](#-logging-options-)
+    * [✨ Creating a printer ✨](#-creating-a-printer-)
+    * [✨ Default tags ✨](#-default-tags-)
+    * [✨ Creating tags ✨](#-creating-tags-)
+    * [✨ Formatting & Using/adding components & Changing the chr ✨](#-formatting--usingadding-components--changing-the-chr-)
+    * [✨ Making the printer global ✨](#-making-the-printer-global-)
+    * [✨ Logging to a specific file ✨](#-logging-to-a-specific-file-)
+    * [✨ Logging to a file *periodically* ✨](#-logging-to-a-file-periodically-)
+        * [✨ Formatting arguments ✨](#-formatting-arguments-)
+        * [✨ Padding on formatting arguments ✨](#-padding-on-formatting-arguments-)
+    * [✨ Logging to a file with a *hash* ✨](#-logging-to-a-file-with-a-hash-)
+    * [✨ Substitutions ✨](#-substitutions-)
+        * [✨ %o, %O, %s, %v ✨](#-o-o-s-v-)
+        * [✨ %d, %i ✨](#-d-i-)
+        * [✨ %f ✨](#-f-)
+        * [✨ %c ✨](#-c-)
+    * [✨ Reading input ✨](#-reading-input-)
+    * [✨ Utilities ✨](#-utilities-)
+    * [✨ Presets ✨](#-presets-)
+        * [✨ Inline Preset ✨](#-inline-preset-)
+        * [✨ Raw Preset ✨](#-raw-preset-)
+        * [✨ Brackets Preset ✨](#-brackets-preset-)
+        * [🌟 HTML Preset 🌟](#-html-preset-)
+    * [✨ Logging Options ✨](#-logging-options-)
+
 <!-- TOC -->
 
 ***
@@ -443,6 +445,8 @@ Makes the log result a html content and puts it into the document.
 | stdin                     | null                   | ReadStream or null                                                                                 | The main input stream for the printer                                                                                               |
 | htmlOut                   | null                   | Element or Function or null                                                                        | If it's an element, adds to that element's innerHTML. If it's a function runs it.                                                   |
 | alwaysRGB                 | false                  | boolean                                                                                            | Whether basic colors should be processed as RGBs.                                                                                   |
+| paletteName               | "default"              | string                                                                                             | The custom palette's name.                                                                                                          |
+| disabledTags              | []                     | string[]                                                                                           | The tags that won't be handled.                                                                                                     |
 | defaultBackgroundColor    | None                   | Color(string)                                                                                      | The default text background color for the printer                                                                                   |
 | tagColor                  | None                   | Color(string)                                                                                      | The default text color for the tags                                                                                                 |
 | tagBold                   | true                   | boolean                                                                                            | Whether the tag component is bold or not                                                                                            |

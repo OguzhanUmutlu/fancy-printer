@@ -283,6 +283,7 @@ const DEFAULT_OPTIONS = {
     htmlOut: null,
     alwaysRGB: false,
     paletteName: "default",
+    disabledTags: [],
 
     defaultColor: "",
     defaultBackgroundColor: "",
@@ -870,6 +871,7 @@ class Printer {
 
 
     tag(tag, ...texts) {
+        if (this.options.disabledTags.includes(tag)) return this;
         const {tag: old} = this.options;
         const {defaultColor, defaultBackgroundColor} = this.options;
         // noinspection JSConstantReassignment
