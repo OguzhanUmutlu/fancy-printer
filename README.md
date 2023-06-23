@@ -368,6 +368,10 @@ printer.info(
     "&oThis is italic",
     "&rThis will reset the styling"
 );
+
+printer.addStyle("h", "color: red; background: yellow");
+
+printer.info("my own styling starts &hnow! yay!");
 ```
 
 ![](https://raw.githubusercontent.com/OguzhanUmutlu/fancy-printer/main/screenshots/img_14.png)
