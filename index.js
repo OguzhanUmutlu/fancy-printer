@@ -274,6 +274,7 @@ Object.keys(COLOR_PALETTES).forEach(k => WEB_PALETTES[k] = makeWebPalette(COLOR_
 const DEFAULT_OPTIONS = {
     format: "%namespace%date %time %tag %text",
     substitutionsEnabled: true,
+    styleSubstitutionsEnabled: false,
     componentsEnabled: true,
     newLine: true,
     namespace: "",
@@ -463,6 +464,16 @@ CustomError.prototype = Object.create(Error.prototype);
 CustomError.prototype.constructor = CustomError;
 
 class Printer {
+    streams = new Map;
+    chr = "%";
+    styleChr = "&";
+    styles = {};
+    components = {};
+    substitutions = {};
+    _times = {};
+    _counts = {};
+    _group = 0;
+
     constructor(options = {}) {
         options = Printer.setDefault(options, Printer.DEFAULT_OPTIONS);
         this.options = options;
@@ -482,13 +493,6 @@ class Printer {
             assert: {text: "ASSERT", backgroundColor: "white", color: "black", textColor: "gray"},
             ready: {text: "READY", backgroundColor: "magenta", textColor: "magenta"}
         };
-        this.streams = new Map;
-        this.chr = "%";
-        this.components = {};
-        this.substitutions = {};
-        this._times = {};
-        this._counts = {};
-        this._group = 0;
         this._namespace = options.namespace || "";
 
         /// COMPONENTS ///
@@ -617,6 +621,30 @@ class Printer {
             Color.value = this.css(s);
             return Color;
         });
+
+        /// STYLE SUBSTITUTIONS ///
+
+        this.addStyle("0", "color: #000000");
+        this.addStyle("1", "color: #0000AA");
+        this.addStyle("2", "color: #00AA00");
+        this.addStyle("3", "color: #00AAAA");
+        this.addStyle("4", "color: #AA0000");
+        this.addStyle("5", "color: #AA00AA");
+        this.addStyle("6", "color: #FFAA00");
+        this.addStyle("7", "color: #AAAAAA");
+        this.addStyle("8", "color: #555555");
+        this.addStyle("9", "color: #5555FF");
+        this.addStyle("a", "color: #55FF55");
+        this.addStyle("b", "color: #55FFFF");
+        this.addStyle("c", "color: #FF5555");
+        this.addStyle("d", "color: #FF55FF");
+        this.addStyle("e", "color: #FFFF55");
+        this.addStyle("f", "color: #FFFFFF");
+        this.addStyle("l", "font-weight: bold");
+        this.addStyle("m", "text-decoration: strike-through");
+        this.addStyle("n", "text-decoration: underline");
+        this.addStyle("o", "font-style: italic");
+        this.addStyle("r", "");
     };
 
     addFile(file) {
@@ -751,6 +779,25 @@ class Printer {
         return this.substitutions;
     };
 
+    addStyle(name, style) {
+        if (typeof style === "function") style = style();
+        this.styles[name] = this.css(style, style.trim() === "");
+        return this
+    };
+
+    removeStyle(name) {
+        delete this.styles[name];
+        return this
+    };
+
+    getStyle(name) {
+        return this.styles[name];
+    };
+
+    getStyles() {
+        return this.styles;
+    };
+
     addTag(key, text, color, backgroundColor, textColor = "", textBackgroundColor = "") {
         this.tags[key] = {text, color, backgroundColor, textColor, textBackgroundColor};
         return this
@@ -782,7 +829,6 @@ class Printer {
         return this.options.format;
     };
 
-
     setCharacter(character) {
         this.chr = character;
         return this
@@ -793,6 +839,16 @@ class Printer {
         return this.chr;
     };
 
+
+    setStyleCharacter(character) {
+        this.styleChr = character;
+        return this
+    };
+
+
+    getStyleCharacter() {
+        return this.styleChr;
+    };
 
     println(text) {
         if (!this.stdout) return this
@@ -824,18 +880,21 @@ class Printer {
         return Printer.substitute(this.substitutions, this.chr, ...texts);
     };
 
+    substituteStyles(text) {
+        return Printer.substituteStyles(this.styleChr, this.styles, text);
+    };
+
     log(...texts) {
         const options = this.options;
         let text = "";
         if (this.options.substitutionsEnabled) {
             text = this.substitute(...texts);
-        } else {
-            for (let i = 0; i < texts.length; i++) {
-                let t = Printer.stringify(texts[i]);
-                text += t;
-                if (i !== texts.length - 1) text += " ";
-            }
+        } else for (let i = 0; i < texts.length; i++) {
+            let t = Printer.stringify(texts[i]);
+            text += t;
+            if (i !== texts.length - 1) text += " ";
         }
+        if (this.options.styleSubstitutionsEnabled) text = this.substituteStyles(text);
         text += ClearAll;
         const lines = Printer.stringify(text).split("\n");
         let comp = {};
@@ -1276,8 +1335,8 @@ class Printer {
     };
 
 
-    css(text) {
-        return Printer.css(text, this.options.alwaysRGB, this.options.paletteName);
+    css(text, clear = true) {
+        return Printer.css(text, this.options.alwaysRGB, this.options.paletteName, clear);
     };
 
 
@@ -1397,7 +1456,8 @@ class Printer {
 
     static new = options => new Printer(options);
     static create = options => new Printer(options);
-    static substitute = (substitutions, chr, ...texts) => {
+
+    static substitute(substitutions, chr, ...texts) {
         let ret = "";
         let colored = false;
         const NoSub = {};
@@ -1452,12 +1512,22 @@ class Printer {
         if (colored) ret += ClearAll;
         return ret;
     };
-    static parseCSS = (text, alwaysRGB = false, paletteName = "default") => {
+
+    static substituteStyles(chr, styles, text) {
+        return text.replaceAll(new RegExp("(\\" + chr + ")[\\da-zA-Z]", "g"), (match, ...a) => {
+            const s = match[1];
+            if (!styles[s]) return match;
+            return styles[s];
+        });
+    };
+
+    static parseCSS(text, alwaysRGB = false, paletteName = "default") {
         const styles = {};
         text.split(";").forEach(i => styles[i.split(":")[0].trim()] = i.split(":").slice(1).join(":").trim());
         return styles;
     };
-    static cleanCSS = (opts, alwaysRGB = false, paletteName = "default") => {
+
+    static cleanCSS(opts, alwaysRGB = false, paletteName = "default") {
         opts = Printer.setDefault(opts, null);
         const styles = {
             font: {
@@ -1501,8 +1571,9 @@ class Printer {
         if (typeof styles.padding !== "number" || styles.padding < 0) styles.padding = 0;
         return styles;
     };
-    static applyCSS = (styles, alwaysRGB = false, paletteName = "default") => {
-        return ClearAll + Printer.paint(" ", {
+
+    static applyCSS(styles, alwaysRGB = false, paletteName = "default") {
+        return Printer.paint(" ", {
             color: styles.font.color,
             backgroundColor: styles.background.color,
             bold: styles.font.weight >= 600,
@@ -1515,7 +1586,8 @@ class Printer {
             paletteName
         });
     };
-    static css = (text, alwaysRGB = false, paletteName = "default") => Printer.applyCSS(Printer.cleanCSS(Printer.parseCSS(text, alwaysRGB, paletteName), alwaysRGB, paletteName), alwaysRGB, paletteName);
+
+    static css = (text, alwaysRGB = false, paletteName = "default", clear = true) => (clear ? ClearAll : "") + Printer.applyCSS(Printer.cleanCSS(Printer.parseCSS(text, alwaysRGB, paletteName), alwaysRGB, paletteName), alwaysRGB, paletteName);
     static DEFAULT_OUTPUTS = {
         web: self => ({
             write: s => {
