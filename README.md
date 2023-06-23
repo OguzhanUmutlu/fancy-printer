@@ -35,6 +35,7 @@ No dependencies! Just one file!
     * [✨ %c ✨](#-c-)
   * [✨ Reading input ✨](#-reading-input-)
   * [✨ Utilities ✨](#-utilities-)
+  * [✨ Fast Styling ✨](#-fast-styling-)
   * [✨ Presets ✨](#-presets-)
     * [✨ Inline Preset ✨](#-inline-preset-)
     * [✨ Raw Preset ✨](#-raw-preset-)
@@ -345,27 +346,27 @@ printer.clear(); // Clears the console (it's not included in the screenshot)
 printer.options.styleSubstitutionsEnabled = true;
 
 printer.info(
-        "&0This is black",
-        "&1This is blue",
-        "&2This is green",
-        "&3This is cyan",
-        "&4This is red",
-        "&5This is purple",
-        "&6This is gold",
-        "&7This is gray",
-        "&8This is bold gray",
-        "&9This is light blue",
-        "&aThis is light green",
-        "&bThis is cyan",
-        "&cThis is light red",
-        "&dThis is pink",
-        "&eThis is yellow",
-        "&fThis is white",
-        "&lThis is bold",
-        "&mThis is strike-through",
-        "&nThis is underlined",
-        "&oThis is italic",
-        "&rThis will reset the styling"
+    "&0This is black",
+    "&1This is blue",
+    "&2This is green",
+    "&3This is cyan",
+    "&4This is red",
+    "&5This is purple",
+    "&6This is gold",
+    "&7This is gray",
+    "&8This is bold gray",
+    "&9This is light blue",
+    "&aThis is light green",
+    "&bThis is cyan",
+    "&cThis is light red",
+    "&dThis is pink",
+    "&eThis is yellow",
+    "&fThis is white",
+    "&lThis is bold",
+    "&mThis is strike-through",
+    "&nThis is underlined",
+    "&oThis is italic",
+    "&rThis will reset the styling"
 );
 ```
 
