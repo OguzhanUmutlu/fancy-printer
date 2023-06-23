@@ -10,6 +10,7 @@ type BackgroundColor = Color;
 type LogOptions = {
     format?: string,
     substitutionsEnabled?: boolean,
+    styleSubstitutionsEnabled?: boolean,
     componentsEnabled?: boolean,
     newLine?: boolean,
     namespace?: string,
@@ -235,6 +236,7 @@ type WebPalette = {
     cyanBright: [string, string | null, string | null],
     whiteBright: [string, string | null, string | null]
 };
+type PrinterStyle = string | (() => string);
 
 declare class FancyPrinter {
     static DEFAULT_OPTIONS?: LogOptions;
@@ -279,6 +281,7 @@ declare class FancyPrinter {
         tag: ComponentFunction
     };
     substitutions: Record<string, SubstitutionFunction>;
+    styles: Record<string, PrinterStyle>;
 
     constructor(options: LogOptions);
     constructor();
@@ -340,6 +343,14 @@ declare class FancyPrinter {
 
     getSubstitutions(): Record<string, SubstitutionFunction>;
 
+    addStyle(character: string, style: PrinterStyle): FancyPrinter;
+
+    removeStyle(character: string): FancyPrinter;
+
+    getStyle(character: string): PrinterStyle;
+
+    getStyle(): Record<string, PrinterStyle>;
+
     addTag(key: string, text: string, color: Color, backgroundColor: BackgroundColor, textColor: Color): FancyPrinter;
 
     removeTag(key: string): FancyPrinter;
@@ -355,6 +366,10 @@ declare class FancyPrinter {
     setCharacter(character: string): FancyPrinter;
 
     getCharacter(): string;
+
+    setStyleCharacter(character: string): FancyPrinter;
+
+    getStyleCharacter(): string;
 
     log(...any: any[]): FancyPrinter;
 

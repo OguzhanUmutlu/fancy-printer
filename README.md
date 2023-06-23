@@ -12,37 +12,35 @@ No dependencies! Just one file!
 ## 🌟 Table Of Contents 🌟
 
 <!-- TOC -->
-
 * [🌟 Fancy Printer 🌟](#-fancy-printer-)
-    * [🤩 Don't forget to star the project on GitHub! 🤩](#-dont-forget-to-star-the-project-on-github--)
-    * [🌟 Table Of Contents 🌟](#-table-of-contents-)
+  * [🤩 Don't forget to star the project on GitHub! 🤩](#-dont-forget-to-star-the-project-on-github--)
+  * [🌟 Table Of Contents 🌟](#-table-of-contents-)
 * [📩 Installation 📩](#-installation-)
-    * [✨ Fanciness continues on Web ✨](#-fanciness-continues-on-web-)
+  * [✨ Fanciness continues on Web ✨](#-fanciness-continues-on-web-)
 * [🔧 Usage 🔧](#-usage-)
-    * [✨ Creating a printer ✨](#-creating-a-printer-)
-    * [✨ Default tags ✨](#-default-tags-)
-    * [✨ Creating tags ✨](#-creating-tags-)
-    * [✨ Formatting & Using/adding components & Changing the chr ✨](#-formatting--usingadding-components--changing-the-chr-)
-    * [✨ Making the printer global ✨](#-making-the-printer-global-)
-    * [✨ Logging to a specific file ✨](#-logging-to-a-specific-file-)
-    * [✨ Logging to a file *periodically* ✨](#-logging-to-a-file-periodically-)
-        * [✨ Formatting arguments ✨](#-formatting-arguments-)
-        * [✨ Padding on formatting arguments ✨](#-padding-on-formatting-arguments-)
-    * [✨ Logging to a file with a *hash* ✨](#-logging-to-a-file-with-a-hash-)
-    * [✨ Substitutions ✨](#-substitutions-)
-        * [✨ %o, %O, %s, %v ✨](#-o-o-s-v-)
-        * [✨ %d, %i ✨](#-d-i-)
-        * [✨ %f ✨](#-f-)
-        * [✨ %c ✨](#-c-)
-    * [✨ Reading input ✨](#-reading-input-)
-    * [✨ Utilities ✨](#-utilities-)
-    * [✨ Presets ✨](#-presets-)
-        * [✨ Inline Preset ✨](#-inline-preset-)
-        * [✨ Raw Preset ✨](#-raw-preset-)
-        * [✨ Brackets Preset ✨](#-brackets-preset-)
-        * [🌟 HTML Preset 🌟](#-html-preset-)
-    * [✨ Logging Options ✨](#-logging-options-)
-
+  * [✨ Creating a printer ✨](#-creating-a-printer-)
+  * [✨ Default tags ✨](#-default-tags-)
+  * [✨ Creating tags ✨](#-creating-tags-)
+  * [✨ Formatting & Using/adding components & Changing the chr ✨](#-formatting--usingadding-components--changing-the-chr-)
+  * [✨ Making the printer global ✨](#-making-the-printer-global-)
+  * [✨ Logging to a specific file ✨](#-logging-to-a-specific-file-)
+  * [✨ Logging to a file *periodically* ✨](#-logging-to-a-file-periodically-)
+    * [✨ Formatting arguments ✨](#-formatting-arguments-)
+    * [✨ Padding on formatting arguments ✨](#-padding-on-formatting-arguments-)
+  * [✨ Logging to a file with a *hash* ✨](#-logging-to-a-file-with-a-hash-)
+  * [✨ Substitutions ✨](#-substitutions-)
+    * [✨ %o, %O, %s, %v ✨](#-o-o-s-v-)
+    * [✨ %d, %i ✨](#-d-i-)
+    * [✨ %f ✨](#-f-)
+    * [✨ %c ✨](#-c-)
+  * [✨ Reading input ✨](#-reading-input-)
+  * [✨ Utilities ✨](#-utilities-)
+  * [✨ Presets ✨](#-presets-)
+    * [✨ Inline Preset ✨](#-inline-preset-)
+    * [✨ Raw Preset ✨](#-raw-preset-)
+    * [✨ Brackets Preset ✨](#-brackets-preset-)
+    * [🌟 HTML Preset 🌟](#-html-preset-)
+  * [✨ Logging Options ✨](#-logging-options-)
 <!-- TOC -->
 
 ***
@@ -339,6 +337,40 @@ printer.clear(); // Clears the console (it's not included in the screenshot)
 
 ![](https://raw.githubusercontent.com/larvance/fancy-printer/main/screenshots/img_9.png)
 
+## ✨ Fast Styling ✨
+
+- NOTE: This feature is disabled by default! This first line will enable it:
+
+```js
+printer.options.styleSubstitutionsEnabled = true;
+
+printer.info(
+        "&0This is black",
+        "&1This is blue",
+        "&2This is green",
+        "&3This is cyan",
+        "&4This is red",
+        "&5This is purple",
+        "&6This is gold",
+        "&7This is gray",
+        "&8This is bold gray",
+        "&9This is light blue",
+        "&aThis is light green",
+        "&bThis is cyan",
+        "&cThis is light red",
+        "&dThis is pink",
+        "&eThis is yellow",
+        "&fThis is white",
+        "&lThis is bold",
+        "&mThis is strike-through",
+        "&nThis is underlined",
+        "&oThis is italic",
+        "&rThis will reset the styling"
+);
+```
+
+![](https://raw.githubusercontent.com/larvance/fancy-printer/main/screenshots/img_14.png)
+
 ***
 
 ## ✨ Presets ✨
@@ -437,6 +469,7 @@ Makes the log result a html content and puts it into the document.
 |---------------------------|------------------------|----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
 | format                    | %date %time %tag %text | string                                                                                             | The formatting                                                                                                                      |
 | substitutionsEnabled      | true                   | boolean                                                                                            | Whether the substitutions should work                                                                                               |
+| styleSubstitutionsEnabled | false                  | boolean                                                                                            | Whether the color substitutions should work                                                                                         |
 | componentsEnabled         | true                   | boolean                                                                                            | Whether the components should work                                                                                                  |
 | newLine                   | true                   | boolean                                                                                            | Whether the logger should print the text with a line break at the end                                                               |
 | namespace                 | ""                     | string                                                                                             | The text for %namespace tag                                                                                                         |
