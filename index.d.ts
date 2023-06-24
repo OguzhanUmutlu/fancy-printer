@@ -496,14 +496,18 @@ declare class FancyPrinter {
 
     namespace(namespace: string): FancyPrinter;
 
-    updateBodyStyle(element: Element): void;
-    updateBodyStyle(): void;
+    updateBodyStyle(element: Element): FancyPrinter;
+    updateBodyStyle(): FancyPrinter;
 
     static makeWebPalette(palette: ColorPalette): WebPalette;
 
     static colorTag(options: LogOptions): string;
 
     static backgroundColorTag(options: LogOptions): string;
+
+    title(title: string): FancyPrinter;
+
+    //getTitle(): Promise<string>;
 }
 
 declare global {

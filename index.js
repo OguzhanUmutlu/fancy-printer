@@ -1352,7 +1352,37 @@ class Printer {
         element.style.background = "#1e1f22";
         element.style.color = "#bcbec4";
         element.style.fontFamily = "monospace,serif";
-    }
+        return this;
+    };
+
+    title(title = "") {
+        if (isWeb) {
+            if (isReactNative) return this;
+            document.title = title;
+            return this;
+        }
+        if (!this.stdout) return this;
+        this.stdout.write(`\x1b]0;${title}\x07`);
+        return this;
+    };
+
+    /*async getTitle() {
+        if (isWeb) {
+            if (isReactNative) return "";
+            return document.title;
+        }
+        if (!this.stdout || !this.stdin) return "";
+        this.stdout.write("\x1b[21t");
+        this.stdin.resume();
+        this.stdin.setRawMode(true);
+        return await new Promise(r => this.stdin.once("data", data => {
+            const match = /\x1b\[.*t/.exec(data.toString());
+            if (match) r(match[1]);
+            else r("");
+            this.stdin.setRawMode(false);
+            this.stdin.pause();
+        }));
+    };*/
 
     static DEFAULT_OPTIONS = DEFAULT_OPTIONS;
     static DEFAULT_COLOR_PALETTES = COLOR_PALETTES;
