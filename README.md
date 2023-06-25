@@ -332,6 +332,10 @@ printer.println(printer.substitute("Hello,%c world!", "color: red")); // Manual 
 
 printer.print("Hello! You!")
 printer.backspace(5); // Erases 5 characters from the text written.
+printer.cursorUp(5); // Moves 5 up.
+printer.cursorRight(5); // Moves 5 right
+printer.cursorDown(5); // Moves 5 down
+printer.cursorLeft(5); // Moves 5 left
 
 printer.clear(); // Clears the console (it's not included in the screenshot)
 ```

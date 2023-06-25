@@ -149,6 +149,7 @@ type SubstitutionFunction = (text: string, responses: { Cancel: {}, Color: { val
 type ReadOptions<T> = {
     onKey?: (key: string) => void | Function | any,
     onBackspace?: () => void | Function | any,
+    onEnd?: () => void | Function | any,
     onArrow?: (key: "up" | "down" | "right" | "left", text: string) => void | Function | any,
     onTermination?: () => void | Function | any,
     timeout?: number | -1,
@@ -508,6 +509,13 @@ declare class FancyPrinter {
     title(title: string): FancyPrinter;
 
     //getTitle(): Promise<string>;
+    cursorUp(amount?: number): FancyPrinter;
+
+    cursorDown(amount?: number): FancyPrinter;
+
+    cursorRight(amount?: number): FancyPrinter;
+
+    cursorLeft(amount ?: number): FancyPrinter;
 }
 
 declare global {

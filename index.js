@@ -1137,6 +1137,25 @@ class Printer {
         return await new Promise(r => this.stdin.once("data", r));
     };
 
+    cursorUp(amount = 1) {
+        if (amount < 0) return this.cursorDown(-amount);
+        return this.print("\x1b[" + amount + "A");
+    };
+
+    cursorDown(amount = 1) {
+        if (amount < 0) return this.cursorUp(-amount);
+        return this.print("\x1b[" + amount + "B");
+    };
+
+    cursorRight(amount = 1) {
+        if (amount < 0) return this.cursorLeft(-amount);
+        return this.print("\x1b[" + amount + "C");
+    };
+
+    cursorLeft(amount = 1) {
+        if (amount < 0) return this.cursorRight(-amount);
+        return this.print("\x1b[" + amount + "D");
+    };
 
     async readLine(stringify = true, trim = true) {
         if (!this.stdin) return "";
