@@ -645,7 +645,7 @@ class Printer {
         this.addStyle("n", "text-decoration: underline");
         this.addStyle("o", "font-style: italic");
         this.addStyle("r", "");
-        this.addStyle("t", () => "color: " + this.getTag(this.options.tag || "log", console.log("a" + Date.now())).textColor);
+        this.addStyle("t", () => "color: " + this.getTag(this.options.tag || "log").textColor);
     };
 
     addFile(file) {
