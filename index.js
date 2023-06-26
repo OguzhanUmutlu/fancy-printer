@@ -645,17 +645,18 @@ class Printer {
         this.addStyle("n", "text-decoration: underline");
         this.addStyle("o", "font-style: italic");
         this.addStyle("r", "");
+        this.addStyle("t", () => "color: " + this.getTag(this.options.tag || "log", console.log("a" + Date.now())).textColor);
     };
 
     addFile(file) {
         if (isWeb) throw new Error("addFile() method cannot be used on web.");
         this.streams.set(file, fs.createWriteStream(file, {flags: "a"}));
-        return this
+        return this;
     };
 
     removeFile(file) {
         this.streams.delete(file);
-        return this
+        return this;
     };
 
     makeLoggerFile(options) {
@@ -709,7 +710,7 @@ class Printer {
             _lastStream: null,
             _streams: new Map
         });
-        return this
+        return this;
     };
 
     makeHashedLoggerFile(options) {
@@ -720,7 +721,7 @@ class Printer {
         if (!fs.existsSync(options.folder)) fs.mkdirSync(options.folder);
         const file = path.join(options.folder, fnCheck(options.format, options).replaceAll(this.chr + "t", Math.floor(Date.now() / (10 ** options.divide)).toString(options.radix)));
         this.addFile(file);
-        return this
+        return this;
     };
 
     makeGlobal(_con = false) {
@@ -728,7 +729,7 @@ class Printer {
         if (_con) gl.console = this;
         gl.Printer = this;
         gl.printer = this;
-        return this
+        return this;
     };
 
     new(options) {
@@ -745,12 +746,12 @@ class Printer {
 
     addComponent(name, callback) {
         this.components[name] = callback;
-        return this
+        return this;
     };
 
     removeComponent(name) {
         delete this.components[name];
-        return this
+        return this;
     };
 
     getComponents() {
@@ -763,12 +764,12 @@ class Printer {
 
     addSubstitution(character, run) {
         this.substitutions[character] = run;
-        return this
+        return this;
     };
 
     removeSubstitution(character) {
         delete this.substitutions[character];
-        return this
+        return this;
     };
 
     getSubstitution(character) {
@@ -780,14 +781,16 @@ class Printer {
     };
 
     addStyle(name, style) {
-        if (typeof style === "function") style = style();
-        this.styles[name] = this.css(style, style.trim() === "");
-        return this
+        this.styles[name] = () => {
+            const st = fnCheck(style);
+            return this.css(st, st.trim() === "");
+        };
+        return this;
     };
 
     removeStyle(name) {
         delete this.styles[name];
-        return this
+        return this;
     };
 
     getStyle(name) {
@@ -800,12 +803,12 @@ class Printer {
 
     addTag(key, text, color, backgroundColor, textColor = "", textBackgroundColor = "") {
         this.tags[key] = {text, color, backgroundColor, textColor, textBackgroundColor};
-        return this
+        return this;
     };
 
     removeTag(key) {
         delete this.tags[key];
-        return this
+        return this;
     };
 
 
@@ -821,7 +824,7 @@ class Printer {
 
     setFormat(format) {
         this.options.format = format;
-        return this
+        return this;
     };
 
 
@@ -831,18 +834,16 @@ class Printer {
 
     setCharacter(character) {
         this.chr = character;
-        return this
+        return this;
     };
-
 
     getCharacter() {
         return this.chr;
     };
 
-
     setStyleCharacter(character) {
         this.styleChr = character;
-        return this
+        return this;
     };
 
 
@@ -851,9 +852,9 @@ class Printer {
     };
 
     println(text) {
-        if (!this.stdout) return this
+        if (!this.stdout) return this;
         this.stdout.write(Printer.stringify(text) + "\n");
-        return this
+        return this;
     };
 
 
@@ -863,16 +864,16 @@ class Printer {
 
 
     print(text) {
-        if (!this.stdout) return this
+        if (!this.stdout) return this;
         this.stdout.write(Printer.stringify(text));
-        return this
+        return this;
     };
 
 
     backspace(amount = 1) {
-        if (!this.stdout) return this
+        if (!this.stdout) return this;
         this.stdout.write("\b \b".repeat(amount));
-        return this
+        return this;
     };
 
 
@@ -925,7 +926,7 @@ class Printer {
             else this[options.newLine ? "println" : "print"](plainText);
             this.streams.forEach(stream => stream.write(plainText));
         });
-        return this
+        return this;
     };
 
 
@@ -940,7 +941,7 @@ class Printer {
         this.options.tag = old;
         this.options.defaultColor = defaultColor;
         this.options.defaultBackgroundColor = defaultBackgroundColor;
-        return this
+        return this;
     };
 
 
@@ -1056,13 +1057,13 @@ class Printer {
         const result = this.tableRaw(object, columns);
         if (result) result.forEach(i => tagName ? this.tag(tagName, i) : this.println(i));
         else tagName ? this.tag(tagName, object) : this.println(object);
-        return this
+        return this;
     };
 
 
     time(name = "default") {
         this._times[name] = performance.now();
-        return this
+        return this;
     };
 
 
@@ -1073,14 +1074,14 @@ class Printer {
 
     timeLog(name = "default", fixed = 3) {
         this.log(name + ": " + this.timeGet(name).toFixed(fixed) + "ms");
-        return this
+        return this;
     };
 
 
     timeEnd(name = "default", fixed = 3) {
         delete this._times[name];
         this.timeLog(name, fixed);
-        return this
+        return this;
     };
 
 
@@ -1097,20 +1098,20 @@ class Printer {
 
     countReset(name = "default") {
         this._counts[name] = 0;
-        return this
+        return this;
     };
 
 
     group() {
         this._group++;
-        return this
+        return this;
     };
 
 
     groupEnd() {
         this._group--;
         if (this._group < 0) this._group = 0;
-        return this
+        return this;
     };
 
 
@@ -1120,16 +1121,16 @@ class Printer {
 
 
     assert(assertion, ...texts) {
-        if (assertion) return this
+        if (assertion) return this;
         this.tag("assert", ...texts);
-        return this
+        return this;
     };
 
 
     updateOptions(opts) {
         opts = Printer.setDefault(opts, Printer.DEFAULT_OPTIONS);
         this.options = {...this.options, ...opts};
-        return this
+        return this;
     };
 
 
@@ -1138,21 +1139,25 @@ class Printer {
     };
 
     cursorUp(amount = 1) {
+        if (amount === 0) return;
         if (amount < 0) return this.cursorDown(-amount);
         return this.print("\x1b[" + amount + "A");
     };
 
     cursorDown(amount = 1) {
+        if (amount === 0) return;
         if (amount < 0) return this.cursorUp(-amount);
         return this.print("\x1b[" + amount + "B");
     };
 
     cursorRight(amount = 1) {
+        if (amount === 0) return;
         if (amount < 0) return this.cursorLeft(-amount);
         return this.print("\x1b[" + amount + "C");
     };
 
     cursorLeft(amount = 1) {
+        if (amount === 0) return;
         if (amount < 0) return this.cursorRight(-amount);
         return this.print("\x1b[" + amount + "D");
     };
@@ -1183,10 +1188,41 @@ class Printer {
             promise: new Promise(r => r("")),
             end: () => true
         };
+        const update = res => {
+            const before = cursor;
+            const after = res.length - cursor;
+            if (before > 0) this.cursorLeft(before);
+            this.print(result);
+            if (after > 0) this.cursorLeft(after);
+        };
         options = Printer.setDefault(options, {
-            onKey: text => this.print(text),
-            onBackspace: () => this.backspace(),
-            onArrow: () => true,
+            onKey: text => {
+                let oR = result;
+                result = result.substring(0, cursor + 1) + text + result.substring(cursor + 1);
+                cursor++;
+                update(oR);
+            },
+            onShiftBackspace: () => {
+            },
+            onBackspace: () => {
+                let oR = result;
+                result = result.substring(0, cursor) + result.substring(cursor + 1);
+                cursor--;
+                if (cursor < -1) cursor = -1;
+                else update(oR);
+            },
+            onArrow: way => {
+                if (way !== "right" && way !== "left") return;
+                if (way === "right") {
+                    if (cursor !== result.length - 1) {
+                        this.cursorRight();
+                        cursor++;
+                    }
+                } else if (cursor > -1) {
+                    this.cursorLeft();
+                    cursor--;
+                }
+            },
             onEnd: () => this.print("\n"),
             onTermination: () => !isWeb && process.exit(),
             timeout: -1
@@ -1203,9 +1239,6 @@ class Printer {
             let text = buffer.toString();
             if (text === "\u0003") return options.onTermination();
             else if (text === "\u0008") {
-                result = result.substring(0, cursor) + result.substring(cursor + 1);
-                cursor--;
-                if (cursor < -1) cursor = -1;
                 options.onBackspace();
                 return;
             } else if (text[0] === "\u001b") {
@@ -1220,9 +1253,9 @@ class Printer {
                 promCb(result);
                 resolved = true;
                 return;
-            } else {
-                result = result.substring(0, cursor + 1) + text + result.substring(cursor + 1);
-                cursor++;
+            } else if (text === "\u007f") {
+                options.onShiftBackspace();
+                return;
             }
             options.onKey(text);
         });
@@ -1362,7 +1395,7 @@ class Printer {
     setOptions(options) {
         options = Printer.setDefault(options, null);
         this.options = {...this.options, ...options};
-        return this
+        return this;
     };
 
 
@@ -1565,8 +1598,9 @@ class Printer {
     static substituteStyles(chr, styles, text) {
         return text.replaceAll(new RegExp("(\\" + chr + ")[\\da-zA-Z]", "g"), (match, ...a) => {
             const s = match[1];
-            if (!styles[s]) return match;
-            return styles[s];
+            const style = styles[s];
+            if (!style) return match;
+            return style();
         });
     };
 

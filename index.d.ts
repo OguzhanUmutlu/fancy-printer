@@ -149,6 +149,7 @@ type SubstitutionFunction = (text: string, responses: { Cancel: {}, Color: { val
 type ReadOptions<T> = {
     onKey?: (key: string) => void | Function | any,
     onBackspace?: () => void | Function | any,
+    onShiftBackspace?: () => void | Function | any,
     onEnd?: () => void | Function | any,
     onArrow?: (key: "up" | "down" | "right" | "left", text: string) => void | Function | any,
     onTermination?: () => void | Function | any,
