@@ -262,6 +262,8 @@ declare class FancyPrinter {
     inline: FancyPrinter;
     html: FancyPrinter;
 
+    static __stack(): Object[];
+
     stdout: StandardOutput;
     stdin: StandardInput;
     Printer: typeof FancyPrinter;
