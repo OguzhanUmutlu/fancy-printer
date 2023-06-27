@@ -1773,6 +1773,8 @@ if (isWeb) {
     window.Printer = Printer;
 } else module.exports = Printer.prototype.static;
 
+Printer.__stack = __stack;
+
 // FUTURE CSS:
 // [ ] background and its longhand equivalents
 // [ ] border and its longhand equivalents
