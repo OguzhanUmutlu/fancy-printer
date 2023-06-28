@@ -516,17 +516,13 @@ class Printer {
             };
         });
         this.addComponent("time", opts => {
-            const date = new Date;
-            const l = [["Date", "getDate"], ["Hour", "getHours"], ["Minute", "getMinutes"], ["Second", "getSeconds"], ["Millisecond", "getMilliseconds", opts.timeMillisecondLength]];
+            let date = new Date;
+
             let text = "";
-            for (let i = 0; i < l.length; i++) {
-                const k = l[i];
-                if (opts["time" + k[0]]) text += date[k[1]]().toString().padStart(k[2] || 2, "0").substring(0, k[2] || 2) + (k[0] === "Second" ? "." : ":");
-            }
-            text = text.substring(0, text.length - 1);
+            text = date.toLocaleString('en', { hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: opts.dateOptions.hour12 || false });
             return {
                 result: Printer.paint(text, componentHelper("time", opts)), plain: text
-            };
+            }
         });
         this.addComponent("uptime", opts => {
             let l = [];
