@@ -321,6 +321,7 @@ const DEFAULT_OPTIONS = {
     timeSecond: true,
     timeMillisecond: false,
     timeMillisecondLength: 3,
+    timeHour12: false,
 
     uptimeColor: "",
     uptimeBackgroundColor: "cyan",
@@ -521,9 +522,14 @@ class Printer {
             let text = "";
             for (let i = 0; i < l.length; i++) {
                 const k = l[i];
-                if (opts["time" + k[0]]) text += date[k[1]]().toString().padStart(k[2] || 2, "0").substring(0, k[2] || 2) + (k[0] === "Second" ? "." : ":");
+                if (opts["time" + k[0]]) {
+                    let v = date[k[1]]();
+                    if (k[0] === "Hour" && opts.timeHour12 && v > 12) v -= 12;
+                    text += v.toString().padStart(k[2] || 2, "0").substring(0, k[2] || 2) + (k[0] === "Second" ? "." : ":");
+                }
             }
             text = text.substring(0, text.length - 1);
+            if (opts.timeHour12) text += " " + (date.getHours() > 12 ? "PM" : "AM");
             return {
                 result: Printer.paint(text, componentHelper("time", opts)), plain: text
             };
@@ -1326,7 +1332,8 @@ class Printer {
             normalItalic: false,
             normalUnderline: false,
             normalStrikethrough: false,
-            expectPromise: true
+            expectPromise: true,
+            betweenText: " "
         });
         if (list.length === 0) return "";
         let selected = 0;
@@ -1340,8 +1347,8 @@ class Printer {
                 if (selected === i) ty += Printer.paint(list[i], componentHelper("selected", options));
                 else ty += list[i];
                 if (i !== list.length - 1) {
-                    typed += " ";
-                    ty += " ";
+                    typed += options.betweenText;
+                    ty += options.betweenText;
                 }
             }
             this.print(ty);

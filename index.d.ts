@@ -68,6 +68,7 @@ type LogOptions = {
     timeSecond?: boolean,
     timeMillisecond?: boolean,
     timeMillisecondLength?: number,
+    timeHour12?: number,
 
     groupColor?: Color,
     groupBackgroundColor?: Color,
@@ -154,7 +155,7 @@ type ReadOptions<T> = {
     onArrow?: (key: "up" | "down" | "right" | "left", text: string) => void | Function | any,
     onTermination?: () => void | Function | any,
     timeout?: number | -1,
-    expectPromise: T
+    expectPromise?: T
 } | Record<any, any>;
 type Styles = {
     font: {
@@ -179,20 +180,21 @@ type Styles = {
     //margin: number,
 };
 type ListSelectionOptions = {
-    selectedColor: string,
-    selectedBackgroundColor: string,
-    selectedPadding: number,
-    selectedBold: boolean,
-    selectedItalic: boolean,
-    selectedUnderline: boolean,
-    selectedStrikethrough: boolean,
-    normalColor: string,
-    normalBackgroundColor: string,
-    normalPadding: number,
-    normalBold: boolean,
-    normalItalic: boolean,
-    normalUnderline: boolean,
-    normalStrikethrough: boolean
+    selectedColor?: string,
+    selectedBackgroundColor?: string,
+    selectedPadding?: number,
+    selectedBold?: boolean,
+    selectedItalic?: boolean,
+    selectedUnderline?: boolean,
+    selectedStrikethrough?: boolean,
+    normalColor?: string,
+    normalBackgroundColor?: string,
+    normalPadding?: number,
+    normalBold?: boolean,
+    normalItalic?: boolean,
+    normalUnderline?: boolean,
+    normalStrikethrough?: boolean,
+    betweenText?: string
 };
 type ReadResponse<T> = {
     promise: Promise<T>,
