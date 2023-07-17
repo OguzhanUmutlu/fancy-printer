@@ -1345,7 +1345,7 @@ class Printer {
             for (let i = 0; i < list.length; i++) {
                 typed += list[i];
                 if (selected === i) ty += Printer.paint(list[i], componentHelper("selected", options));
-                else ty += list[i];
+                else ty += Printer.paint(list[i], componentHelper("normal", options));
                 if (i !== list.length - 1) {
                     typed += options.betweenText;
                     ty += options.betweenText;
