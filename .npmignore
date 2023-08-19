@@ -1,0 +1,12 @@
+.idea
+node_modules
+.npmignore
+package-lock.json
+test.js
+screenshots
+test.txt
+logs
+tests
+docs
+index.js
+index.module.js
