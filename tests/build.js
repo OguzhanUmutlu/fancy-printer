@@ -11,9 +11,9 @@ const original = fs.readFileSync(path.join(__dirname, "../index.js"), "utf8");
 fs.writeFileSync(path.join(__dirname, "../index.min.js"), uglify.minify(original).code);
 
 const spl = original.split("/*@buildExport*/");
-const moduleCode = spl[0] + spl[2] + original
-    .replace("/*@buildModule", "")
-    .replace("@buildModule*/", "");
+const moduleCode = spl[0] + original
+    .split("/*@buildModule")[1]
+    .split("@buildModule*/")[0] + spl[2];
 fs.writeFileSync(
     path.join(__dirname, "../index.module.js"),
     moduleCode
