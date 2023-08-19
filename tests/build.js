@@ -19,11 +19,11 @@ fs.writeFileSync(
     moduleCode
 );
 
-fs.writeFileSync(path.join(__dirname, "../build/index.min.mjs"), "//noinspection ALL\n" + uglify.minify(moduleCode).code);
+fs.writeFileSync(path.join(__dirname, "../printer.mjs"), "//noinspection ALL\n" + uglify.minify(moduleCode).code);
 
 const originalDts = fs.readFileSync(path.join(__dirname, "../index.d.ts"), "utf8");
 fs.writeFileSync(path.join(__dirname, "../build/index.d.mts"), originalDts);
 fs.writeFileSync(path.join(__dirname, "../build/index.min.d.ts"), originalDts);
-fs.writeFileSync(path.join(__dirname, "../build/index.min.d.mts"), originalDts);
+fs.writeFileSync(path.join(__dirname, "../printer.d.mts"), originalDts);
 
 printer.pass("Successfully built in " + (Date.now() - T) + "ms!");
