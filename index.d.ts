@@ -529,5 +529,4 @@ declare global {
     let console: FancyPrinter;
 }
 
-type pkg = FancyPrinter;
-export = pkg;
+export = printer;
