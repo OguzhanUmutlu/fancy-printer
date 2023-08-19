@@ -1785,8 +1785,16 @@ export default new Printer;
 
 /*@buildExport*/
 if (isWeb) {
-    glob_.printer = Printer.prototype.static;
-    glob_.Printer = Printer;
+    Object.defineProperties(glob_, {
+        printer: {
+            get: () => Printer.prototype.static,
+            enumerable: false, configurable: false
+        },
+        Printer: {
+            get: () => Printer,
+            enumerable: false, configurable: false
+        }
+    });
 } else if (typeof module !== "undefined") module.exports = Printer.prototype.static;
 /*@buildExport*/
 
