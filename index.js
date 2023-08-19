@@ -1,10 +1,10 @@
-// noinspection JSUnusedGlobalSymbols,JSUnusedLocalSymbols
+// noinspection JSUnusedGlobalSymbols,JSUnusedLocalSymbols,DuplicatedCode,JSDeprecatedSymbols
 
-// noinspection JSDeprecatedSymbols
-const isReactNative = typeof navigator !== "undefined" && navigator.product === "ReactNative";
+const glob_ = typeof window === "undefined" ? global : (typeof window === "undefined" ? {} : window);
+const isReactNative = typeof glob_.navigator !== "undefined" && glob_.navigator["product"] === "ReactNative";
 const isReactNativeDev = isReactNative && __DEV__;
-const isWeb = typeof require === "undefined" || isReactNative;
-const req = r => isWeb ? null : (global["require"] || require)(r);
+const isWeb = typeof window !== "undefined" || isReactNative;
+const req = r => isWeb ? null : (glob_["require"] || require)(r);
 
 // Credits to: https://npmjs.com/package/color-name
 const knownColors = {
@@ -168,13 +168,13 @@ const Color = {
     bgHsv: (a, b, c) => Color.bgRgb(...conv.hsv(a, b, c))
 };
 if (isWeb) {
-    const ver = Number.parseInt((/(Chrome|Chromium)\/(?<chromeVersion>\d+)\./.exec(navigator.userAgent) || {groups: {chromeVersion: -1}}).groups.chromeVersion, 10);
+    const ver = Number.parseInt((/(Chrome|Chromium)\/(?<chromeVersion>\d+)\./.exec((glob_.navigator || {}).userAgent || "") || {groups: {chromeVersion: -1}}).groups.chromeVersion, 10);
     if (ver < 69) Color.supportsColor = {
         hasBasic: false,
         has256: false,
         has16m: false
     };
-} else Color.supportsColor = req("./vendor/supports-color/index.js").stdout;
+}// else Color.supportsColor = req("./_vendor/supports-color/index.js").stdout;
 Object.keys(knownColors).forEach(k => {
     Color[k] = Color.rgb(...knownColors[k]);
     Color["bg" + k[0].toUpperCase() + k.substring(1)] = Color.bgRgb(...knownColors[k]);
@@ -185,14 +185,16 @@ ansiKeys.forEach((k, i) => {
     Color[k] = r => r ? (isWeb ? `\x1B[99;${i}m${r}\x1B[39m` : `\x1B[${l[0]}m${r}\x1B[${l[1]}m`) : "";
 });
 
-const fs = req("fs");
-const path = req("path");
-const _util = {
-    inspect: (...a) => {
-        if (isWeb) return JSON.stringify(a[0]); // todo
-        return req("util").inspect(...a);
-    }
-};
+if (typeof require !== "undefined") {
+    const fs = req("fs");
+    const path = req("path");
+    const _util = {
+        inspect: (...a) => {
+            if (isWeb) return JSON.stringify(a[0]); // todo
+            return req("util").inspect(...a);
+        }
+    };
+}
 
 const fnCheck = (s, ...args) => typeof s === "function" ? s(...args) : s;
 const ClearAll = isWeb ? Color.reset("$").replace("$", "") : "\x1B[39m\x1B[49m\x1B[22m\x1B[23m\x1B[24m\x1B[29m";
@@ -732,10 +734,9 @@ class Printer {
     };
 
     makeGlobal(_con = false) {
-        const gl = isWeb ? window : global;
-        if (_con) gl.console = this;
-        gl.Printer = this;
-        gl.printer = this;
+        if (_con) glob_.console = this;
+        glob_.Printer = this;
+        glob_.printer = this;
         return this;
     };
 
@@ -1278,7 +1279,7 @@ class Printer {
     async readPassword(options) {
         options = Printer.setDefault(options, {expectPromise: true});
         const th = this.readCustom({
-            onKey: text => this.stdout.write(options.character || "*"),
+            onKey: text => this.stdout.write(options["character"] || "*"),
             ...options
         });
         if (options.expectPromise) return await th.promise;
@@ -1696,8 +1697,8 @@ class Printer {
             }
         }),
         html: self => {
-            if (isReactNative) return Printer.DEFAULT_OUTPUTS.web();
             if (!isWeb) return Printer.DEFAULT_OUTPUTS.terminal();
+            if (isReactNative || typeof document === "undefined") return Printer.DEFAULT_OUTPUTS.web();
             const el = document.createElement("div");
             return {
                 write: s => {
@@ -1735,11 +1736,11 @@ class Printer {
     };
 
     static colorTag(opts) {
-        return Printer.css("color: " + brackets.getTag(opts.tag || "log").color);
+        return Printer.css("color: " + preset_brackets.getTag(opts.tag || "log").color);
     };
 
     static backgroundColorTag(opts) {
-        return Printer.css("background-color: " + brackets.getTag(opts.tag || "log").backgroundColor);
+        return Printer.css("background-color: " + preset_brackets.getTag(opts.tag || "log").backgroundColor);
     };
 }
 
@@ -1779,17 +1780,14 @@ list.forEach(i => list.forEach(j => Printer.prototype[i][j] = Printer.prototype[
 Printer.__stack = __stack;
 
 /*@buildModule
-export default Printer;
-export {
-    Printer, preset_inline as inline, preset_raw as raw, preset_normal as normal, preset_brackets as brackets, preset_html as html
-};
+export default new Printer;
 @buildModule*/
 
 /*@buildExport*/
 if (isWeb) {
-    window.printer = Printer.prototype.static;
-    window.Printer = Printer;
-} else module.exports = Printer.prototype.static;
+    glob_.printer = Printer.prototype.static;
+    glob_.Printer = Printer;
+} else if (typeof module !== "undefined") module.exports = Printer.prototype.static;
 /*@buildExport*/
 
 // FUTURE CSS:

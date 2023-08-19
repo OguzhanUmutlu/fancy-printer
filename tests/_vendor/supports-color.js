@@ -1,7 +1,7 @@
 'use strict';
 const os = require('os');
 const tty = require('tty');
-const hasFlag = require('../has-flag/index.js');
+const hasFlag = require('./has-flag.js');
 
 const {env} = process;
 
