@@ -217,6 +217,7 @@ function __stack() {
         return stack;
     };
     const err = new Error;
+    // noinspection JSAnnotator
     Error.captureStackTrace(err, arguments.callee);
     const stack = [...err.stack];
     Error.prepareStackTrace = orig;
@@ -1778,6 +1779,7 @@ list.forEach(i => list.forEach(j => Printer.prototype[i][j] = Printer.prototype[
 Printer.__stack = __stack;
 
 /*@buildModule
+export default Printer;
 export {
     Printer, preset_inline as inline, preset_raw as raw, preset_normal as normal, preset_brackets as brackets, preset_html as html
 };
