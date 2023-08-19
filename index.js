@@ -1068,13 +1068,13 @@ class Printer {
 
 
     time(name = "default") {
-        this._times[name] = performance.now();
+        this._times[name] = Date.now();
         return this;
     };
 
 
     timeGet(name = "default") {
-        return performance.now() - (this._times[name] || performance.now());
+        return Date.now() - (this._times[name] || Date.now());
     };
 
 
@@ -1742,10 +1742,10 @@ class Printer {
     };
 }
 
-Printer.prototype.inline = Printer.inline = new Printer({newLine: false});
-Printer.prototype.raw = Printer.raw = new Printer({format: "%text"});
-Printer.prototype.static = Printer.static = Printer.prototype.default = Printer.default = new Printer();
-const brackets = Printer.prototype.brackets = Printer.brackets = new Printer({
+const preset_inline = Printer.prototype.inline = Printer.inline = new Printer({newLine: false});
+const preset_raw = Printer.prototype.raw = Printer.raw = new Printer({format: "%text"});
+const preset_normal = Printer.prototype.static = Printer.static = Printer.prototype.default = Printer.default = new Printer();
+const preset_brackets = Printer.prototype.brackets = Printer.brackets = new Printer({
     tagBold: true,
     tagPadding: 0,
     tagColor: "default",
@@ -1757,7 +1757,7 @@ const brackets = Printer.prototype.brackets = Printer.brackets = new Printer({
     namespaceBackgroundColor: "",
     format: opts => Printer.colorTag(opts) + (opts.namespace ? "[%namespace\b \b] | " : "") + "[%date] | [%time] [%tag] > %text" + ClearAll
 });
-brackets.tags = {
+preset_brackets.tags = {
     pass: {text: "PASS", textColor: "green", color: "green"},
     fail: {text: "FAIL", textColor: "redBright", color: "redBright"},
     error: {text: "ERR!", textColor: "red", color: "red"},
@@ -1769,18 +1769,26 @@ brackets.tags = {
     assert: {text: "ASSERT", color: "gray", textColor: "gray"},
     ready: {text: "READY", color: "magenta", textColor: "magenta"}
 };
-Printer.prototype.html = Printer.html = new Printer();
+const preset_html = Printer.prototype.html = Printer.html = new Printer();
 Printer.html.stdout = Printer.DEFAULT_OUTPUTS.html(Printer.html);
 
 const list = ["inline", "raw", "static", "default", "brackets", "html"];
 list.forEach(i => list.forEach(j => Printer.prototype[i][j] = Printer.prototype[j]));
 
+Printer.__stack = __stack;
+
+/*@buildModule
+export {
+    Printer, preset_inline as inline, preset_raw as raw, preset_normal as normal, preset_brackets as brackets, preset_html as html
+};
+@buildModule*/
+
+/*@buildExport*/
 if (isWeb) {
     window.printer = Printer.prototype.static;
     window.Printer = Printer;
 } else module.exports = Printer.prototype.static;
-
-Printer.__stack = __stack;
+/*@buildExport*/
 
 // FUTURE CSS:
 // [ ] background and its longhand equivalents
