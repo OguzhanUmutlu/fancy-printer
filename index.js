@@ -5,6 +5,8 @@ const isReactNative = typeof glob_.navigator !== "undefined" && glob_.navigator[
 const isReactNativeDev = isReactNative && __DEV__;
 const isWeb = typeof window !== "undefined" || isReactNative;
 const req = r => isWeb ? null : (glob_["require"] || require)(r);
+const fs = req("fs");
+const path = req("path");
 
 // Credits to: https://npmjs.com/package/color-name
 const knownColors = {
@@ -185,16 +187,12 @@ ansiKeys.forEach((k, i) => {
     Color[k] = r => r ? (isWeb ? `\x1B[99;${i}m${r}\x1B[39m` : `\x1B[${l[0]}m${r}\x1B[${l[1]}m`) : "";
 });
 
-if (typeof require !== "undefined") {
-    const fs = req("fs");
-    const path = req("path");
-    const _util = {
-        inspect: (...a) => {
-            if (isWeb) return JSON.stringify(a[0]); // todo
-            return req("util").inspect(...a);
-        }
-    };
-}
+const _util = {
+    inspect: (...a) => {
+        if (isWeb) return JSON.stringify(a[0]); // todo
+        return req("util").inspect(...a);
+    }
+};
 
 const fnCheck = (s, ...args) => typeof s === "function" ? s(...args) : s;
 const ClearAll = isWeb ? Color.reset("$").replace("$", "") : "\x1B[39m\x1B[49m\x1B[22m\x1B[23m\x1B[24m\x1B[29m";
