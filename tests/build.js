@@ -4,7 +4,6 @@ const uglify = require("uglify-js");
 const printer = require("../index");
 
 const T = Date.now();
-printer.clear();
 printer.info("Building...");
 const original = fs.readFileSync(path.join(__dirname, "../index.js"), "utf8");
 
