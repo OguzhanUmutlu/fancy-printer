@@ -1,9 +1,11 @@
 {
   "name": "fancy-printer",
-  "version": "1.2.55",
+  "version": "1.2.56",
   "description": "A fancy logger with a lot of customization!",
   "main": "build/index.min.js",
-  "scripts": {},
+  "scripts": {
+    "prepublishOnly": "node tests/build"
+  },
   "keywords": [
     "printer",
     "fancy",

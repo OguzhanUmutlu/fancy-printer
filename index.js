@@ -910,9 +910,9 @@ class Printer {
         let plain = formatted;
         if (options.componentsEnabled && Object.keys(this.components).length > 0) {
             const reg = `\\${this.chr}[a-zA-Z]+`;
-            const spl = fnCheck(options.format, options).split(new RegExp("(" + reg + ")", "g"));
+            const spl = fnCheck(options.format, options).split(RegExp("(" + reg + ")", "g"));
             formatted = spl.filter(i => i).map(i => {
-                if (!new RegExp("^" + reg + "$").test(i.toString())) return i;
+                if (!RegExp("^" + reg + "$").test(i.toString())) return i;
                 i = i.substring(1);
                 if (!this.components[i]) return this.chr + i;
                 i = comp[i] || this.components[i](options);
@@ -1478,6 +1478,7 @@ class Printer {
         if (type === "string") return any;
         if (type === "undefined") return "undefined";
         if (type === "boolean") return any ? "true" : "false";
+        if (any instanceof Error) return any.stack;
         if (type === "object" || type === "symbol" || type === "function") return _util.inspect(any);
         return any.toString();
     };
