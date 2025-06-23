@@ -1,10 +1,19 @@
 // noinspection JSUnusedGlobalSymbols,JSUnusedLocalSymbols,DuplicatedCode,JSDeprecatedSymbols
 
-const glob_ = typeof window === "undefined" ? global : (typeof window === "undefined" ? {} : window);
+let glob_;
+if (typeof global !== "undefined") glob_ = global;
+else if (typeof window !== "undefined") glob_ = window;
+else if (typeof self !== "undefined") glob_ = self;
+else if (typeof globalThis !== "undefined") glob_ = globalThis;
+else glob_ = {};
 const isReactNative = typeof glob_.navigator !== "undefined" && glob_.navigator["product"] === "ReactNative";
-const isReactNativeDev = isReactNative && __DEV__;
-const isWeb = typeof window !== "undefined" || isReactNative;
-const req = r => isWeb ? null : (glob_["require"] || require)(r);
+const isWeb = (typeof window !== "undefined" || typeof self !== "undefined" || isReactNative) && typeof process === "undefined";
+let req;
+try {
+    req = eval("require");
+} catch (e) {
+    req = _ => null;
+}
 const fs = req("fs");
 const path = req("path");
 
@@ -857,9 +866,13 @@ class Printer {
         return this.styleChr;
     };
 
+    get statusType() {
+        return ["warn", "error", "debug"].includes(this.options.tag) ? this.options.tag : "log";
+    };
+
     println(text) {
         if (!this.stdout) return this;
-        this.stdout.write(Printer.stringify(text) + "\n");
+        this.stdout.write(Printer.stringify(text) + "\n", "utf8", this.statusType);
         return this;
     };
 
@@ -871,7 +884,7 @@ class Printer {
 
     print(text) {
         if (!this.stdout) return this;
-        this.stdout.write(Printer.stringify(text));
+        this.stdout.write(Printer.stringify(text), "utf8", this.statusType);
         return this;
     };
 
@@ -903,7 +916,8 @@ class Printer {
         }
         if (this.options.styleSubstitutionsEnabled) text = this.substituteStyles(text);
         text += ClearAll;
-        const lines = Printer.stringify(text).split("\n");
+        const entireResult = Printer.stringify(text);
+        const lines = isWeb ? [entireResult] : entireResult.split("\n");
         let comp = {};
         let formatted = options.format;
         let colored = formatted;
@@ -927,7 +941,7 @@ class Printer {
             const l = line;
             line = Printer.color(line, options.defaultColor, options.alwaysRGB, options.paletteName);
             line = Printer.color(line, options.defaultBackgroundColor, options.alwaysRGB, options.paletteName);
-            const plainText = " ".repeat(this._group) + plain.replaceAll(this.chr + "text", l).replaceAll(/\x1B\[\d+m/g, "") + (options.newLine ? "\n" : "");
+            const plainText = " ".repeat(this._group) + plain.replaceAll(this.chr + "text", l).replaceAll(/\x1B\[\d+(;\d+)*m/g, "") + (options.newLine ? "\n" : "");
             if (options.stylingEnabled) this[options.newLine ? "println" : "print"](Printer.paint(" ".repeat(this._group), componentHelper("group", options)) + colored.replaceAll(this.chr + "text", line));
             else this[options.newLine ? "println" : "print"](plainText);
             this.streams.forEach(stream => stream.write(plainText));
@@ -940,10 +954,8 @@ class Printer {
         if (this.options.disabledTags.includes(tag)) return this;
         const {tag: old} = this.options;
         const {defaultColor, defaultBackgroundColor} = this.options;
-        // noinspection JSConstantReassignment
         this.options.tag = tag;
         this.log(...texts);
-        // noinspection JSConstantReassignment
         this.options.tag = old;
         this.options.defaultColor = defaultColor;
         this.options.defaultBackgroundColor = defaultBackgroundColor;
@@ -1538,10 +1550,10 @@ class Printer {
     };
 
     static makeGlobal(_con = false) {
-        if (_con) global.console = Printer.static;
-        global.Printer = Printer;
+        if (_con) glob_.console = Printer.static;
+        glob_.Printer = Printer;
         // noinspection JSValidateTypes
-        global.printer = Printer.static;
+        glob_.printer = Printer.static;
     };
 
     static new = options => new Printer(options);
@@ -1681,7 +1693,7 @@ class Printer {
     static css = (text, alwaysRGB = false, paletteName = "default", clear = true) => (clear ? ClearAll : "") + Printer.applyCSS(Printer.cleanCSS(Printer.parseCSS(text, alwaysRGB, paletteName), alwaysRGB, paletteName), alwaysRGB, paletteName);
     static DEFAULT_OUTPUTS = {
         web: self => ({
-            write: s => {
+            write: (s, _, status = "log") => {
                 const colors = [];
                 let current = [null, null];
                 s = webParser(s, colors, current, self.options.paletteName);
@@ -1692,7 +1704,7 @@ class Printer {
                     else tmp.push(colors[i][0]);
                     clr.push(tmp.join(";"));
                 }
-                console.log(s, ...clr); // THIS PART IS ONLY RAN IF IT'S ON WEB!
+                console[status](s, ...clr); // THIS PART IS ONLY RAN IF IT'S ON WEB!
             }
         }),
         html: self => {
@@ -1784,16 +1796,8 @@ export default new Printer;
 
 /*@buildExport*/
 if (isWeb) {
-    Object.defineProperties(glob_, {
-        printer: {
-            get: () => Printer.prototype.static,
-            enumerable: false, configurable: false
-        },
-        Printer: {
-            get: () => Printer,
-            enumerable: false, configurable: false
-        }
-    });
+    glob_.printer = Printer.static;
+    glob_.Printer = Printer;
 } else if (typeof module !== "undefined") module.exports = Printer.prototype.static;
 /*@buildExport*/
 
