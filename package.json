@@ -1,6 +1,6 @@
 {
   "name": "fancy-printer",
-  "version": "2.0.4",
+  "version": "2.0.5",
   "description": "A fancy logger with a lot of customization!",
   "main": "./index.cjs.min.js",
   "module": "./index.esm.min.js",

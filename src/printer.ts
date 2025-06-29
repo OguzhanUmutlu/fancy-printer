@@ -84,7 +84,7 @@ type PeriodicLoggerOptions = {
 };
 
 function defaultStream(text: string, clean: string, level: LogLevel) {
-    if (isWeb) console[level](level === LogLevel.warn || level === LogLevel.error ? clean : text);
+    if (isWeb) console[level](text);
     else globalVar.process[level === LogLevel.error ? "stderr" : "stdout"].write(text);
 }
 
@@ -241,6 +241,8 @@ export class BasePrinter<Tags extends string[] = any[], Components extends Recor
         let result = this.format(...args)[0];
         const lines = result.split("\n");
 
+        const isNormalText = tag.textColor && ((tag.level !== LogLevel.error && tag.level !== LogLevel.warn) || !isWeb);
+
         let result2 = "";
         let cleanResult2 = "";
         for (let i = 0; i < lines.length; i++) {
@@ -248,13 +250,13 @@ export class BasePrinter<Tags extends string[] = any[], Components extends Recor
             for (let i = 0; i < this.parsed.length; i++) {
                 const part = this.parsed[i];
                 if (typeof part === "string") {
-                    cleanResult2 += this.cleanSubstitutions(text);
+                    cleanResult2 += this.cleanSubstitutions(part);
                     result2 += this.applySubstitutions(part);
                 } else if (!part) {
-                    if (tag.textColor) result2 += this.color(tag.textColor);
+                    if (isNormalText) result2 += this.color(tag.textColor);
                     result2 += this.options.allowTextSubstitutions ? this.applySubstitutions(text) : text;
                     cleanResult2 += this.options.allowTextSubstitutions ? this.cleanSubstitutions(text) : text;
-                    if (tag.textColor) result2 += styles.reset.open;
+                    if (isNormalText) result2 += styles.reset.open;
                 } else {
                     const [comp, cleanComp] = this.getComponentValue(part.name);
                     result2 += comp;
