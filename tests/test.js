@@ -1,2 +1,0 @@
-const printer = require("../index");
-
