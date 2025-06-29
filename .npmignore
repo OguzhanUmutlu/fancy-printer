@@ -1,11 +1,9 @@
 .idea
 .vscode
-dist/ts
+dist
 screenshots
 src
 tests
 .npmignore
+.gitignore
 rollup.config.mjs
-dist/index.cjs.js
-dist/index.esm.js
-dist/index.umd.js

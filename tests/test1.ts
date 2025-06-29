@@ -1,3 +1,3 @@
-import printer from "../dist/index.esm.js";
+import printer from "fancy-printer";
 
 printer.info("hi");

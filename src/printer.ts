@@ -609,7 +609,7 @@ export class BasePrinter<Tags extends string[] = any[], Components extends Recor
     };
 }
 
-const printer = (new BasePrinter() as Printer<[], {}>)
+export const printer = (new BasePrinter() as Printer<[], {}>)
     .addTag("pass", {text: "PASS", background: "greenBright", textColor: "greenBright"})
     .addTag("fail", {text: "FAIL", background: "redBright", textColor: "redBright", level: LogLevel.error})
     .addTag("error", {text: "ERR!", background: "red", textColor: "red", level: LogLevel.error})

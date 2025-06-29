@@ -1,17 +1,17 @@
 {
   "name": "fancy-printer",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "description": "A fancy logger with a lot of customization!",
-  "main": "./dist/index.cjs.min.js",
-  "module": "./dist/index.esm.min.js",
-  "browser": "./dist/index.umd.min.js",
-  "types": "./dist/index.d.ts",
+  "main": "./index.cjs.min.js",
+  "module": "./index.esm.min.js",
+  "browser": "./index.umd.min.js",
+  "types": "./index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/index.esm.min.js",
-      "require": "./dist/index.cjs.min.js",
-      "browser": "./dist/index.umd.min.js",
-      "types": "./dist/index.d.ts"
+      "import": "./index.esm.min.js",
+      "require": "./index.cjs.min.js",
+      "browser": "./index.umd.min.js",
+      "types": "./index.d.ts"
     }
   },
   "scripts": {
