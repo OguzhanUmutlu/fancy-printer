@@ -33,7 +33,7 @@ let req: any;
 try {
     req = eval("require");
 } catch (e) {
-    req = _ => null;
+    req = () => null;
 }
 
 export type Printer<Tags extends string[] = string[], Components extends Record<string, Component> = Record<string, Component>> =
