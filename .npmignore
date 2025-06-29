@@ -6,3 +6,6 @@ src
 tests
 .npmignore
 rollup.config.mjs
+dist/index.cjs.js
+dist/index.esm.js
+dist/index.umd.js
