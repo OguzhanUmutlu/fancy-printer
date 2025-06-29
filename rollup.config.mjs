@@ -8,10 +8,10 @@ export default [
     defineConfig({
         input: "dist/ts/printer.js",
         output: [
-            { file: "dist/index.esm.js", format: "esm" },
-            { file: "dist/index.esm.min.js", format: "esm", plugins: [terser()] },
-            { file: "dist/index.cjs.js", format: "cjs" },
-            { file: "dist/index.cjs.min.js", format: "cjs", plugins: [terser()] },
+            {file: "dist/index.esm.js", format: "esm"},
+            {file: "index.esm.min.js", format: "esm", plugins: [terser()]},
+            {file: "dist/index.cjs.js", format: "cjs"},
+            {file: "index.cjs.min.js", format: "cjs", plugins: [terser()]},
             {
                 file: "dist/index.umd.js",
                 format: "umd",
@@ -19,7 +19,7 @@ export default [
                 exports: "default"
             },
             {
-                file: "dist/index.umd.min.js",
+                file: "index.umd.min.js",
                 format: "umd",
                 name: "Printer",
                 exports: "default",
@@ -27,14 +27,14 @@ export default [
             }
         ],
         plugins: [
-            nodeResolve({ preferBuiltins: false }),
+            nodeResolve({preferBuiltins: false}),
             commonjs()
         ]
     }),
     defineConfig({
         input: "dist/ts/printer.d.ts",
         output: {
-            file: "dist/index.d.ts",
+            file: "index.d.ts",
             format: "es"
         },
         plugins: [dts()]

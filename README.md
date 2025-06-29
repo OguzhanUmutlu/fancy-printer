@@ -54,14 +54,22 @@ npm install fancy-printer
 
 ```html
 
-<script src="./node_modules/fancy-printer/index.js"></script>
+<script src="https://unpkg.com/fancy-printer/index.umd.min.js"></script>
 
 <script>
-    printer.log("Hello, world!");
+    Printer.log("Hello, world!");
 </script>
 ```
 
-- Note: Web doesn't have features like logging to a file because it is not possible.
+Or even with module scripts:
+
+```html
+<script type="module">
+  import printer from "https://unpkg.com/fancy-printer/index.esm.min.js";
+
+  printer.log("test");
+</script>
+```
 
 ***
 

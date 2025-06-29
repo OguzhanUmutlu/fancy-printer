@@ -1,0 +1,9 @@
+.idea
+.vscode
+dist
+node_modules
+rollup.config.mjs
+index.cjs.min.js
+index.d.ts
+index.esm.min.js
+index.umd.min.js
