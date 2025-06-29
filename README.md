@@ -2,8 +2,6 @@
 
 A fancy logger with a lot of customizations and blazingly fast speed!
 
-No dependencies! Just one file!
-
 [![](https://img.shields.io/badge/Discord-black?style=for-the-badge&logo=discord)](https://discord.gg/emAhrw3mvM)
 [![npm](https://img.shields.io/npm/v/fancy-printer.svg?style=for-the-badge)](https://www.npmjs.com/package/fancy-printer)
 
@@ -33,15 +31,13 @@ No dependencies! Just one file!
     * [✨ %d, %i ✨](#-d-i-)
     * [✨ %f ✨](#-f-)
     * [✨ %c ✨](#-c-)
-  * [✨ Reading input ✨](#-reading-input-)
   * [✨ Utilities ✨](#-utilities-)
   * [✨ Fast Styling ✨](#-fast-styling-)
   * [✨ Presets ✨](#-presets-)
     * [✨ Inline Preset ✨](#-inline-preset-)
-    * [✨ Raw Preset ✨](#-raw-preset-)
     * [✨ Brackets Preset ✨](#-brackets-preset-)
-    * [🌟 HTML Preset 🌟](#-html-preset-)
   * [✨ Logging Options ✨](#-logging-options-)
+    * [✨ Component-specific options: ✨](#-component-specific-options-)
 <!-- TOC -->
 
 ***
@@ -111,8 +107,8 @@ printer.tag("pass", "This worked as well!");
 ## ✨ Creating tags ✨
 
 ```js
-printer.addTag("test", "HEY!", "", "#bb7373", "#ffff00");
-printer.tag("test", "Hello, world!");
+printer = printer.addTag("test", {text: "HEY!", background: "#bb7373", textColor: "#ffff00"});
+printer.test("Hello, world!");
 ```
 
 ![](https://raw.githubusercontent.com/OguzhanUmutlu/fancy-printer/main/screenshots/img_1.png)
@@ -122,27 +118,27 @@ printer.tag("test", "Hello, world!");
 ## ✨ Formatting & Using/adding components & Changing the chr ✨
 
 ```js
-const DEFAULT_FORMAT = "%namespace%date %time %tag %text"; // this is the default format
-printer.options.namespace = "My namespace"
+const DEFAULT_FORMAT = "$namespace$date $time $tag $text"; // this is the default format
+printer.options.namespaceValue = "My namespace"
 // OR
 const newPrinter = printer.namespace("My new namespace!");
 
-printer.options.namespace = "";
-printer.setFormat("%date %time %tag %text");
+printer.options.namespaceValue = "";
+printer.options.format = "$date $time $tag $text";
 printer.info("Hello, world!");
-printer.setFormat("%date %time %tag > %text");
+printer.options.format = "$date $time $tag > $text";
 printer.info("Hello, world!");
-printer.setFormat("%date %time %tag %2plus2 %text");
+printer.options.format = "$date $time $tag $2plus2 $text";
 printer.addComponent("2plus2", () => {
     return 2 + 2;
 });
 printer.info("Hello, world!");
 
-printer.setCharacter("!");
-printer.setFormat("!date !time !tag !2plus2 !text");
+printer.options.componentSymbol = "!";
+printer.options.format = "!date !time !tag !2plus2 !text";
 printer.info("Hello, world!");
 
-printer.setFormat("!stack or just [ !filename:!line:!column ] !date !time !tag !2plus2 !text");
+printer.options.format = "!filename&c:!line&c:!column or just [ !filename:!line:!column ] !date !time !tag !2plus2 !text";
 printer.info("Hello, world!");
 ```
 
@@ -152,16 +148,23 @@ printer.info("Hello, world!");
 
 ## ✨ Making the printer global ✨
 
-```js
-printer.makeGlobal();
+```ts
+const myPrinter = printer.create()
+    .addTag("test") // do more stuff if needed, or just use the default
 
-// some file.js where printer nor Printer is defined
+declare global {
+    let printer: typeof myPrinter;
+}
+myPrinter.makeGlobal();
+
+// some file where printer isn't imported:
 printer.info("test");
-Printer.static.info("test");
-```
 
-```js
-printer.makeGlobal(true);
+declare global {
+    // @ts-ignore
+    let console: typeof myPrinter;
+}
+printer.replaceConsole();
 
 // Now you can use the static printer from `console`
 console.info("test");
@@ -185,9 +188,9 @@ printer.makeLoggerFile();
 // OPTIONAL:
 printer.makeLoggerFile({
     folder: "./myFolder/", // Default: logs. This is where the log files will be saved in.
-    format: "my log %DD-%MM-%YYYY.txt", // Default: log-DD-MM-YYYY.log. The format of the name of the file.
-    month: "long", // the type of the %month, expects: "numeric" | "2-digit" | "long" | "short" | "narrow"
-    day: "long", // the type of the %month variable, expects: "long" | "short" | "narrow"
+    format: "my log $DD-$MM-$YYYY.txt", // Default: log-DD-MM-YYYY.log. The format of the name of the file.
+    month: "long", // the type of the $month, expects: "numeric" | "2-digit" | "long" | "short" | "narrow"
+    day: "long", // the type of the $date variable, expects: "long" | "short" | "narrow"
 });
 ```
 
@@ -223,7 +226,7 @@ printer.makeHashedLoggerFile({
     folder: "./myFolder/", // Default: logs. This is where the log files will be saved in.
     radix: 16, // default 16, max 32. This is the time encoder setting
     divide: 3, // Default: 3. Divides the current timestamp into 10^divide. For example 3 would divide it to 1000 which makes it depend on seconds.
-    format: "my log %t.txt" // Default: log-%t.log. The format of the name of the file. %t will be replaced by the time
+    format: "my log $t.txt" // Default: log-$t.log. The format of the name of the file. $t will be replaced by the time
 });
 ```
 
@@ -280,55 +283,16 @@ printer.log("Hello, %cthis is red!%c and now it's blue!", "color: red", "color: 
 | color                          | None    | Color                                                                       | The color of the text                                                           |
 | font-weight                    | normal  | normal \| bold \| bolder \| A positive integer                              | The boldness of the text                                                        |
 | text-decoration                | none    | underline \| line-through \| linethrough \| strike-through \| strikethrough | The decorations of the text. More than one can be used by separating with space |
-| padding                        | 0       | A positive integer                                                          | The amount of white space to add on both sides                                  |
 | font-style                     | normal  | normal \| italic \| oblique                                                 | The style of the text.                                                          |
-
-***
-
-## ✨ Reading input ✨
-
-```js
-const {inline} = printer;
-
-(async () => {
-    inline.log("Type something: ");
-    const something = await printer.readLine();
-    printer.warn("You entered: %s", something);
-
-    inline.log("Press a key: ");
-    const key = await printer.readKey();
-    inline.print(key + "\n");
-    printer.warn("You pressed: %s", key);
-
-    inline.log("Enter your password: ");
-    const pass = await printer.readPassword({character: "*"}); // Character is "*" by default.
-    printer.warn("You entered: %s", pass);
-
-    const list = ["an apple", "a grape", "a watermelon", "a piano!"];
-    inline.log("Select something: ");
-    const selection = await printer.readSelection(list);
-    printer.warn("You entered: %s", list[selection]);
-
-    const list2 = ["audi", "ford", "lamborghini", "beans"];
-    inline.log("Select something: ");
-    const selection2 = await printer.readSelectionListed(list2);
-    printer.warn("You entered: %s", list2[selection2]);
-})();
-```
-
-![](https://raw.githubusercontent.com/OguzhanUmutlu/fancy-printer/main/screenshots/img_8.png)
 
 ***
 
 ## ✨ Utilities ✨
 
 ```js
-printer.print("Hello, world!"); // No substitution or formatting will be used and won't break line.
+printer.print("Hello, world!%c RED!", "color: red"); // No substitutions or text components will be used and won't break line.
 
-printer.printLine("Hello, world!"); // No substitution or formatting will be used and will break line.
-printer.println("Hello, world!");
-
-printer.println(printer.substitute("Hello,%c world!", "color: red")); // Manual substitution
+printer.println("Hello, world!"); // Same as print, will break line.
 
 printer.print("Hello! You!")
 printer.backspace(5); // Erases 5 characters from the text written.
@@ -347,7 +311,7 @@ printer.clear(); // Clears the console (it's not included in the screenshot)
 - NOTE: This feature is disabled by default! This first line will enable it:
 
 ```js
-printer.options.styleSubstitutionsEnabled = true;
+printer.options.allowTextSubstitutions = true; // allows the input to use substitutions
 
 printer.info(
     "&0This is black",
@@ -374,7 +338,9 @@ printer.info(
     "&tBack to the 'info' tag's text color"
 );
 
-printer.addStyle("h", "color: red; background: yellow");
+printer.addStyle("&h", "color: red; background: yellow");
+// OR
+printer.addSubstitution("&h", printer.css("color: red; background: yellow"));
 
 printer.info("my own styling starts &hnow! yay!");
 ```
@@ -389,31 +355,14 @@ printer.info("my own styling starts &hnow! yay!");
 
 This preset basically stops putting a line break at the end of logs.
 
-Can be achieved by doing `printer.options.newLine = false` or just using the existing preset:
+Can be achieved by doing `printer.options.end = ""` or just using the existing preset:
 
 ```js
-const {inline} = printer;
-
-inline.log("Hello, ");
-inline.print("world!");
+inline.inline.log("Hello, ");
+inline.inline.print("world!");
 ```
 
 ![](https://raw.githubusercontent.com/OguzhanUmutlu/fancy-printer/main/screenshots/img_10.png)
-
-### ✨ Raw Preset ✨
-
-This preset basically removes tags, dates and time from the format.
-
-Can be achieved by doing `printer.setFormat("%text")` or just using the existing preset:
-
-```js
-const {raw} = printer;
-
-raw.log("Hello, world!");
-raw.log("%cNeeds some coloring!", "color: red");
-```
-
-![](https://raw.githubusercontent.com/OguzhanUmutlu/fancy-printer/main/screenshots/img_11.png)
 
 ### ✨ Brackets Preset ✨
 
@@ -438,145 +387,87 @@ brackets.assert(5 % 2 === 0, "5 is not divisible by 2!");
 
 ![](https://raw.githubusercontent.com/OguzhanUmutlu/fancy-printer/main/screenshots/img_12.png)
 
-### 🌟 HTML Preset 🌟
-
-This preset is for web.
-
-Makes the log result a html content and puts it into the document.
-
-```html
-
-<script>
-    const {html} = printer;
-
-    html.updateBodyStyle(document.body);
-
-    html.pass("Passed!");
-    html.fail("Failed!");
-    html.error("An error occurred!");
-    html.warn("Something might go wrong!");
-    html.info("This is a message!");
-    html.debug("Check the line 5!");
-    html.notice("Attention please!");
-    html.log("An original log!");
-    html.ready("I am ready!");
-    html.assert(5 % 2 === 0, "5 is not divisible by 2!");
-
-    html.options.htmlOut = a => printer.warning(a);
-
-    html.log("test!");
-    printer.notice("^^^ The text up there has been logged by using html.options.htmlOut! ^^^");
-</script>
-```
-
-![](https://raw.githubusercontent.com/OguzhanUmutlu/fancy-printer/main/screenshots/img_13.png)
-
 ***
 
 ## ✨ Logging Options ✨
 
-| Key                       | Default                | Expected type                                                                                      | Description                                                                                                                         |
-|---------------------------|------------------------|----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
-| format                    | %date %time %tag %text | string                                                                                             | The formatting                                                                                                                      |
-| substitutionsEnabled      | true                   | boolean                                                                                            | Whether the substitutions should work                                                                                               |
-| styleSubstitutionsEnabled | false                  | boolean                                                                                            | Whether the color substitutions should work                                                                                         |
-| componentsEnabled         | true                   | boolean                                                                                            | Whether the components should work                                                                                                  |
-| newLine                   | true                   | boolean                                                                                            | Whether the logger should print the text with a line break at the end                                                               |
-| namespace                 | ""                     | string                                                                                             | The text for %namespace tag                                                                                                         |
-| stylingEnabled            | true                   | boolean                                                                                            | Whether the stylings like colors or decorations should work                                                                         |
-| stdout                    | null                   | WriteStream or null                                                                                | The main output stream for the printer                                                                                              |
-| stdin                     | null                   | ReadStream or null                                                                                 | The main input stream for the printer                                                                                               |
-| htmlOut                   | null                   | Element or Function or null                                                                        | If it's an element, adds to that element's innerHTML. If it's a function runs it.                                                   |
-| alwaysRGB                 | false                  | boolean                                                                                            | Whether basic colors should be processed as RGBs.                                                                                   |
-| paletteName               | "default"              | string                                                                                             | The custom palette's name.                                                                                                          |
-| disabledTags              | []                     | string[]                                                                                           | The tags that won't be handled.                                                                                                     |
-| defaultBackgroundColor    | None                   | Color(string)                                                                                      | The default text background color for the printer                                                                                   |
-| tagColor                  | None                   | Color(string)                                                                                      | The default text color for the tags                                                                                                 |
-| tagBold                   | true                   | boolean                                                                                            | Whether the tag component is bold or not                                                                                            |
-| tagItalic                 | false                  | boolean                                                                                            | Whether the tag component is italic or not                                                                                          |
-| tagUnderline              | false                  | boolean                                                                                            | Whether the tag component is underlined or not                                                                                      |
-| tagStrikethrough          | false                  | boolean                                                                                            | Whether the tag component is struck-through or not                                                                                  |
-| tagPadding                | 2                      | number                                                                                             | The padding of the tag component                                                                                                    |
-| dateColor                 | None                   | Color(string)                                                                                      | The text color of the date component                                                                                                |
-| dateBackgroundColor       | blueBright             | Color(string)                                                                                      | The text background color of the date                                                                                               |
-| dateBold                  | true                   | boolean                                                                                            | Whether the date component is bold or not                                                                                           |
-| dateItalic                | false                  | boolean                                                                                            | Whether the date component is italic or not                                                                                         |
-| dateUnderline             | false                  | boolean                                                                                            | Whether the date component is underlined or not                                                                                     |
-| dateStrikethrough         | false                  | boolean                                                                                            | Whether the date component is struck-through or not                                                                                 |
-| datePadding               | 1                      | number                                                                                             | The padding of the date component                                                                                                   |
-| dateOptions.localeMatcher | undefined              | "best fit" or "lookup" or undefined                                                                | [Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#options) |
-| dateOptions.weekday       | undefined              | "long" or "short" or "narrow" or undefined                                                         | [Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#options) |
-| dateOptions.era           | undefined              | "long" or "short" or "narrow" or undefined                                                         | [Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#options) |
-| dateOptions.year          | undefined              | "numeric" or "2-digit" or undefined                                                                | [Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#options) |
-| dateOptions.month         | "short"                | "numeric" or "2-digit" or "long" or "short" or "narrow" or undefined                               | [Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#options) |
-| dateOptions.day           | "numeric"              | "numeric" or "2-digit" or undefined                                                                | [Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#options) |
-| dateOptions.hour          | undefined              | "numeric" or "2-digit" or undefined                                                                | [Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#options) |
-| dateOptions.minute        | undefined              | "numeric" or "2-digit" or undefined                                                                | [Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#options) |
-| dateOptions.second        | undefined              | "numeric" or "2-digit" or undefined                                                                | [Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#options) |
-| dateOptions.timeZoneName  | undefined              | "short" or "long" or "shortOffset" or "longOffset" or "shortGeneric" or "longGeneric" or undefined | [Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#options) |
-| dateOptions.formatMatcher | undefined              | "best fit" or "basic" or undefined                                                                 | [Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#options) |
-| dateOptions.hour12        | undefined              | boolean or undefined                                                                               | [Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#options) |
-| dateOptions.timeZone      | undefined              | string or undefined                                                                                | [Docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat#options) |
-| timeColor                 | None                   | Color(string)                                                                                      | The text color of the time component                                                                                                |
-| timeBackgroundColor       | blue                   | Color(string)                                                                                      | The text background color of the time                                                                                               |
-| timeBold                  | true                   | boolean                                                                                            | Whether the time component is bold or not                                                                                           |
-| timeItalic                | false                  | boolean                                                                                            | Whether the time component is italic or not                                                                                         |
-| timeUnderline             | false                  | boolean                                                                                            | Whether the time component is underlined or not                                                                                     |
-| timeStrikethrough         | false                  | boolean                                                                                            | Whether the time component is struck-through or not                                                                                 |
-| timePadding               | 1                      | number                                                                                             | The padding of the time component                                                                                                   |
-| timeDate                  | false                  | boolean                                                                                            | Whether the time component has the date in it                                                                                       |
-| timeHour                  | true                   | boolean                                                                                            | Whether the time component has the hours in it                                                                                      |
-| timeMinute                | true                   | boolean                                                                                            | Whether the time component has the minutes in it                                                                                    |
-| timeSecond                | true                   | boolean                                                                                            | Whether the time component has the seconds in it                                                                                    |
-| timeMillisecond           | false                  | boolean                                                                                            | Whether the time component has the milliseconds in it                                                                               |
-| timeMillisecondLength     | 3                      | number                                                                                             | The maximum length of the millisecond part of the time component                                                                    |
-| uptimeColor               | None                   | Color(string)                                                                                      | The text color of the uptime component                                                                                              |
-| uptimeBackgroundColor     | blue                   | Color(string)                                                                                      | The text background color of the uptime                                                                                             |
-| uptimeBold                | true                   | boolean                                                                                            | Whether the uptime component is bold or not                                                                                         |
-| uptimeItalic              | false                  | boolean                                                                                            | Whether the uptime component is italic or not                                                                                       |
-| uptimeUnderline           | false                  | boolean                                                                                            | Whether the uptime component is underlined or not                                                                                   |
-| uptimeStrikethrough       | false                  | boolean                                                                                            | Whether the uptime component is struck-through or not                                                                               |
-| uptimePadding             | 1                      | number                                                                                             | The padding of the uptime component                                                                                                 |
-| uptimeDate                | false                  | boolean                                                                                            | Whether the uptime component has the date in it                                                                                     |
-| uptimeHour                | true                   | boolean                                                                                            | Whether the uptime component has the hours in it                                                                                    |
-| uptimeMinute              | true                   | boolean                                                                                            | Whether the uptime component has the minutes in it                                                                                  |
-| uptimeSecond              | true                   | boolean                                                                                            | Whether the uptime component has the seconds in it                                                                                  |
-| uptimeMillisecond         | true                   | boolean                                                                                            | Whether the uptime component has the milliseconds in it                                                                             |
-| uptimeMillisecondLength   | 2                      | number                                                                                             | The maximum length of the millisecond part of the uptime component                                                                  |
-| groupColor                | None                   | Color(string)                                                                                      | The text color of the group                                                                                                         |
-| groupBackgroundColor      | None                   | Color(string)                                                                                      | The text background color of the group                                                                                              |
-| namespaceColor            | None                   | Color(string)                                                                                      | The text color of the namespace component                                                                                           |
-| namespaceBackgroundColor  | blue                   | Color(string)                                                                                      | The text background color of the namespace                                                                                          |
-| namespaceBold             | true                   | boolean                                                                                            | Whether the namespace component is bold or not                                                                                      |
-| namespaceItalic           | false                  | boolean                                                                                            | Whether the namespace component is italic or not                                                                                    |
-| namespaceUnderline        | false                  | boolean                                                                                            | Whether the namespace component is underlined or not                                                                                |
-| namespaceStrikethrough    | false                  | boolean                                                                                            | Whether the namespace component is struck-through or not                                                                            |
-| namespacePadding          | 1                      | number                                                                                             | The padding of the namespace component                                                                                              |
-| filenameColor             | None                   | Color(string)                                                                                      | The text color of the filename component                                                                                            |
-| filenameBackgroundColor   | blue                   | Color(string)                                                                                      | The text background color of the filename                                                                                           |
-| filenameBold              | true                   | boolean                                                                                            | Whether the filename component is bold or not                                                                                       |
-| filenameItalic            | false                  | boolean                                                                                            | Whether the filename component is italic or not                                                                                     |
-| filenameUnderline         | false                  | boolean                                                                                            | Whether the filename component is underlined or not                                                                                 |
-| filenameStrikethrough     | false                  | boolean                                                                                            | Whether the filename component is struck-through or not                                                                             |
-| filenamePadding           | 1                      | number                                                                                             | The padding of the filename component                                                                                               |
-| lineColor                 | None                   | Color(string)                                                                                      | The text color of the line component                                                                                                |
-| lineBackgroundColor       | blue                   | Color(string)                                                                                      | The text background color of the line                                                                                               |
-| lineBold                  | true                   | boolean                                                                                            | Whether the line component is bold or not                                                                                           |
-| lineItalic                | false                  | boolean                                                                                            | Whether the line component is italic or not                                                                                         |
-| lineUnderline             | false                  | boolean                                                                                            | Whether the line component is underlined or not                                                                                     |
-| lineStrikethrough         | false                  | boolean                                                                                            | Whether the line component is struck-through or not                                                                                 |
-| linePadding               | 1                      | number                                                                                             | The padding of the line component                                                                                                   |
-| columnColor               | None                   | Color(string)                                                                                      | The text color of the column component                                                                                              |
-| columnBackgroundColor     | blue                   | Color(string)                                                                                      | The text background color of the column                                                                                             |
-| columnBold                | true                   | boolean                                                                                            | Whether the column component is bold or not                                                                                         |
-| columnItalic              | false                  | boolean                                                                                            | Whether the column component is italic or not                                                                                       |
-| columnUnderline           | false                  | boolean                                                                                            | Whether the column component is underlined or not                                                                                   |
-| columnStrikethrough       | false                  | boolean                                                                                            | Whether the column component is struck-through or not                                                                               |
-| columnPadding             | 1                      | number                                                                                             | The padding of the column component                                                                                                 |
-| stackColor                | None                   | Color(string)                                                                                      | The text color of the stack component                                                                                               |
-| stackBackgroundColor      | blue                   | Color(string)                                                                                      | The text background color of the stack                                                                                              |
-| stackBold                 | true                   | boolean                                                                                            | Whether the stack component is bold or not                                                                                          |
-| stackItalic               | false                  | boolean                                                                                            | Whether the stack component is italic or not                                                                                        |
-| stackUnderline            | false                  | boolean                                                                                            | Whether the stack component is underlined or not                                                                                    |
-| stackStrikethrough        | false                  | boolean                                                                                            | Whether the stack component is struck-through or not                                                                                |
-| stackPadding              | 1                      | number                                                                                             | The padding of the stack component                                                                                                  |
+Base options:
+
+| Key                    | Default                            | Expected type | Description                                         |
+|------------------------|------------------------------------|---------------|-----------------------------------------------------|
+| format                 | "$namespace$date $time $tag $text" | string        | The format of the log.                              |
+| componentSymbol        | "$"                                | string        | The symbol used to access components in the format. |
+| namespaceValue         | ""                                 | string        | The value of the namespace component.               |
+| allowSubstitutions     | true                               | boolean       | Whether to allow substitutions in the format.       |
+| allowTextSubstitutions | false                              | boolean       | Whether to allow substitutions in the text.         |
+| end                    | "\n"                               | string        | The ending character of the log.                    |
+| sep                    | " "                                | string        | The separator between given texts.                  |
+
+Default components: `pass`, `fail`, `error`, `warn`, `info`, `debug`, `notice`, `log`, `ready`, `assert`.
+
+Every component has these options:
+
+| Key           | Default | Expected type | Description                                    |
+|---------------|---------|---------------|------------------------------------------------|
+| color         | ""      | Color(string) | The text color of the component                |
+| background    | ""      | Color(string) | The background color of the component          |
+| bold          | true    | boolean       | Whether the component is bold or not           |
+| italic        | false   | boolean       | Whether the component is italic or not         |
+| underline     | false   | boolean       | Whether the component is underlined or not     |
+| strikethrough | false   | boolean       | Whether the component is struck-through or not |
+| padding       | 2       | number        | The padding of the component                   |
+
+Which can be accessed like so:
+
+```ts
+printer.options.pass.italic = true;
+// OR
+printer.setOptions({
+    pass: {
+        italic: true
+    }
+});
+```
+
+### ✨ Component-specific options: ✨
+
+| Key                      | Default    | Expected type                                                                         | Description                                                         |
+|--------------------------|------------|---------------------------------------------------------------------------------------|---------------------------------------------------------------------|
+| date.localeMatcher       | "best fit" | "best fit" or "lookup"                                                                | The locale matcher for the date component                           |
+| date.weekday             | "long"     | "long" or "short" or "narrow"                                                         | The weekday type for the date component                             |
+| date.era                 | "long"     | "long" or "short" or "narrow"                                                         | The era type for the date component                                 |
+| date.year                | "numeric"  | "numeric" or "2-digit"                                                                | The year type for the date component                                |
+| date.month               | "short"    | "numeric" or "2-digit" or "long" or "short" or "narrow"                               | The month type for the date component                               |
+| date.day                 | "numeric"  | "numeric" or "2-digit"                                                                | The day type for the date component                                 |
+| date.hour                | undefined  | "numeric" or "2-digit"                                                                | The hour type for the date component                                |
+| date.minute              | undefined  | "numeric" or "2-digit"                                                                | The minute type for the date component                              |
+| date.second              | undefined  | "numeric" or "2-digit"                                                                | The second type for the date component                              |
+| date.timeZoneName        | undefined  | "short" or "long" or "shortOffset" or "longOffset" or "shortGeneric" or "longGeneric" | The time zone name type for the date component                      |
+| date.formatMatcher       | undefined  | "best fit" or "basic"                                                                 | The format matcher for the date component                           |
+| date.hour12              | undefined  | boolean                                                                               | Whether the date component should use 12-hour format or not         |
+| date.timeZone            | undefined  | string                                                                                | The time zone for the date component                                |
+| filename.base            | ""         | string                                                                                | The base folder to be truncated                                     |
+| filename.basename        | true       | boolean                                                                               | Whether the filename component should show only the basename or not |
+| filename.extension       | true       | boolean                                                                               | Whether the filename component should show the extension or not     |
+| time.hour12              | false      | boolean                                                                               | Whether the time component should use 12-hour format or not         |
+| time.date                | false      | boolean                                                                               | Whether the time component should show the date or not              |
+| time.hour                | true       | boolean                                                                               | Whether the time component should show the hour or not              |
+| time.minute              | true       | boolean                                                                               | Whether the time component should show the minute or not            |
+| time.second              | true       | boolean                                                                               | Whether the time component should show the second or not            |
+| time.millisecond         | false      | boolean                                                                               | Whether the time component should show the millisecond or not       |
+| time.hourLength          | 2          | number                                                                                | The maximum length of the hour part of the time component           |
+| time.minuteLength        | 2          | number                                                                                | The maximum length of the minute part of the time component         |
+| time.secondLength        | 2          | number                                                                                | The maximum length of the second part of the time component         |
+| time.millisecondLength   | 3          | number                                                                                | The maximum length of the millisecond part of the time component    |
+| uptime.day               | false      | boolean                                                                               | Whether the uptime component should show the day or not             |
+| uptime.hour              | true       | boolean                                                                               | Whether the uptime component should show the hour or not            |
+| uptime.minute            | true       | boolean                                                                               | Whether the uptime component should show the minute or not          |
+| uptime.second            | true       | boolean                                                                               | Whether the uptime component should show the second or not          |
+| uptime.millisecond       | true       | boolean                                                                               | Whether the uptime component should show the millisecond or not     |
+| uptime.dayLength         | 2          | number                                                                                | The maximum length of the day part of the uptime component          |
+| uptime.hourLength        | 2          | number                                                                                | The maximum length of the hour part of the uptime component         |
+| uptime.minuteLength      | 2          | number                                                                                | The maximum length of the minute part of the uptime component       |
+| uptime.secondLength      | 2          | number                                                                                | The maximum length of the second part of the uptime component       |
+| uptime.millisecondLength | 2          | number                                                                                | The maximum length of the millisecond part of the uptime component  |
+| namespace.before         | ""         | string                                                                                | The text to be put before namespace component if it's not empty.    |
+| namespace.after          | " "        | string                                                                                | The text to be put after namespace component if it's not empty.     |

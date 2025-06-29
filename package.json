@@ -1,10 +1,22 @@
 {
   "name": "fancy-printer",
-  "version": "1.2.66",
+  "version": "2.0.0",
   "description": "A fancy logger with a lot of customization!",
-  "main": "build/index.min.js",
+  "main": "./dist/index.cjs.js",
+  "module": "./dist/index.esm.js",
+  "browser": "./dist/index.umd.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.esm.js",
+      "require": "./dist/index.cjs.js",
+      "browser": "./dist/index.umd.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
   "scripts": {
-    "prepublishOnly": "node tests/build"
+    "build": "tsc && rollup -c",
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
     "printer",
@@ -20,5 +32,18 @@
   "license": "MIT",
   "repository": {
     "url": "https://github.com/OguzhanUmutlu/fancy-printer"
+  },
+  "dependencies": {
+    "@types/node": "^24.0.7",
+    "ansi-styles": "^6.2.1",
+    "color-name": "^2.0.0",
+    "supports-color": "^10.0.0"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^28.0.6",
+    "@rollup/plugin-node-resolve": "^16.0.1",
+    "@rollup/plugin-terser": "^0.4.4",
+    "rollup": "^4.44.0",
+    "rollup-plugin-dts": "^6.2.1"
   }
 }
