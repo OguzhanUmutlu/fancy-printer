@@ -316,7 +316,7 @@ printer.clear(); // Clears the console (it's not included in the screenshot)
 
 ## ✨ Fast Styling ✨
 
-- NOTE: This feature is disabled by default! This first line will enable it:
+- NOTE: This feature is disabled by default! The first line will enable it:
 
 ```js
 printer.options.allowTextSubstitutions = true; // allows the input to use substitutions

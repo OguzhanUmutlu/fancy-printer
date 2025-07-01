@@ -469,10 +469,12 @@ export class BasePrinter<Tags extends string[] = any[], Components extends Recor
 
     makeGlobal(name = "printer") {
         globalVar[name] = this;
+        return this as Printer<Tags, Components>;
     };
 
     replaceConsole() {
         globalVar.console = this;
+        return this as Printer<Tags, Components>;
     };
 
     addFile(filename: string, fs = req("fs")) {
@@ -609,6 +611,42 @@ export class BasePrinter<Tags extends string[] = any[], Components extends Recor
         this.streams.delete(defaultStream);
         return this as Printer<Tags, Components>;
     };
+
+    removeAllSubstitutions() {
+        this.substitutions = {};
+        this.parse();
+        return this as Printer<Tags, Components>;
+    };
+
+    addDefaultSubstitutions(character = "&") {
+        const baseStyles = {
+            0: "color: #000000",
+            1: "color: #0000AA",
+            2: "color: #00AA00",
+            3: "color: #00AAAA",
+            4: "color: #AA0000",
+            5: "color: #AA00AA",
+            6: "color: #FFAA00",
+            7: "color: #AAAAAA",
+            8: "color: #555555",
+            9: "color: #5555FF",
+            a: "color: #55FF55",
+            b: "color: #55FFFF",
+            c: "color: #FF5555",
+            d: "color: #FF55FF",
+            e: "color: #FFFF55",
+            f: "color: #FFFFFF",
+            l: "font-weight: bold",
+            m: "text-decoration: line-through",
+            n: "text-decoration: underline",
+            o: "font-style: italic",
+            r: "",
+            t: (p: Printer) => "color: " + p.options.currentTag.textColor
+        };
+
+        for (const k in baseStyles) printer.addStyle(character + k, baseStyles[k]);
+        return this as Printer<Tags, Components>;
+    };
 }
 
 export const printer = (new BasePrinter() as Printer<[], {}>)
@@ -631,34 +669,8 @@ export const printer = (new BasePrinter() as Printer<[], {}>)
     .addComponent("line", LineComponent)
     .addComponent("column", ColumnComponent)
     .addComponent("namespace", NamespaceComponent)
-    .usePalette("JetBrains") as BasicPrinter;
-
-const baseStyles = {
-    0: "color: #000000",
-    1: "color: #0000AA",
-    2: "color: #00AA00",
-    3: "color: #00AAAA",
-    4: "color: #AA0000",
-    5: "color: #AA00AA",
-    6: "color: #FFAA00",
-    7: "color: #AAAAAA",
-    8: "color: #555555",
-    9: "color: #5555FF",
-    a: "color: #55FF55",
-    b: "color: #55FFFF",
-    c: "color: #FF5555",
-    d: "color: #FF55FF",
-    e: "color: #FFFF55",
-    f: "color: #FFFFFF",
-    l: "font-weight: bold",
-    m: "text-decoration: line-through",
-    n: "text-decoration: underline",
-    o: "font-style: italic",
-    r: "",
-    t: (p: Printer) => "color: " + p.options.currentTag.textColor
-};
-
-for (const k in baseStyles) printer.addStyle("&" + k, baseStyles[k]);
+    .usePalette("JetBrains")
+    .addDefaultSubstitutions() as BasicPrinter;
 
 const brackets = printer.create().setOptions({
     tag: {bold: true, padding: 0, color: "", background: ""},
