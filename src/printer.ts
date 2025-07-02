@@ -83,11 +83,6 @@ type PeriodicLoggerOptions = {
     month?: "numeric" | "2-digit" | "long" | "short" | "narrow", day?: "long" | "short" | "narrow", fs?: any
 };
 
-function defaultStream(text: string, clean: string, level: LogLevel) {
-    if (isWeb) console[level](text);
-    else globalVar.process[level === LogLevel.error ? "stderr" : "stdout"].write(text);
-}
-
 const periodicLogger = {};
 
 type BasicPrinter = Printer<["pass", "fail", "error", "warn", "info", "debug", "notice", "log", "assert", "ready"], {
@@ -102,17 +97,42 @@ type BasicPrinter = Printer<["pass", "fail", "error", "warn", "info", "debug", "
     namespace: typeof NamespaceComponent
 }>;
 
+const streamsLength = new Map<any, number>;
+
 export class BasePrinter<Tags extends string[] = any[], Components extends Record<string, Component> = Record<string, Component>> {
+    private defaultStream = (text: string, clean: string, level: LogLevel) => {
+        if (isWeb) console[level](text);
+        else {
+            const out = globalVar.process[level === LogLevel.error ? "stderr" : "stdout"];
+            const lineLength = streamsLength.get(out) || 0;
+            const info = this.readInfo;
+            if (info) {
+                if (lineLength !== 0) out.write(`\r\x1b[1A\x1b[${lineLength}C`); // up(1), right(oldLineLength)
+                else out.write(`\r${" ".repeat(info.question.length + info.text.length)}\r`); // clear
+            }
+            const lineIndex = text.lastIndexOf("\n");
+            streamsLength.set(out, text.length - lineIndex - 1);
+            out.write(text);
+            if (info) {
+                if (lineIndex !== text.length - 1) out.write("\n");
+                out.write(info.question + info.text);
+            }
+        }
+    };
+
     private tags: Record<string, TagOptions> = {};
     private components = {} as Components;
     private componentNames: string[] = []; // sorted so the longest component names are first
     private substitutions: Record<string, string | ((printer: Printer) => string)> = {};
     private parsed: (string | { name: string, comp: Component })[] = [];
     private parsedComponents = new Set<string>;
-    private streams: Map<any, (s: string, clean: string, level: LogLevel) => void> = new Map([[defaultStream, defaultStream]]);
+    private streams: Map<any, (s: string, clean: string, level: LogLevel, printer: Printer) => void> = new Map([[this.defaultStream, this.defaultStream]]);
     private _periodicOptions: PeriodicLoggerOptions;
     private _inline: Printer<Tags, Components>;
     private palette: Record<string, RGB> = {};
+    private alreadyReading: Promise<string | null> = null;
+    private readInfo: { question: string, cursor: number, text: string } | null = null;
+
 
     get inline() {
         if (this.options.end === "") return this as Printer<Tags, Components>;
@@ -271,7 +291,7 @@ export class BasePrinter<Tags extends string[] = any[], Components extends Recor
     };
 
     private write(text: string, cleanText: string, level: LogLevel) {
-        for (const fn of this.streams.values()) fn(text, cleanText, level);
+        for (const fn of this.streams.values()) fn(text, cleanText, level, this as any);
     };
 
     addTag<Name extends string>(name: Name, options: TagOptions): Printer<[...Tags, Name], Components> {
@@ -563,7 +583,7 @@ export class BasePrinter<Tags extends string[] = any[], Components extends Recor
 
     backspace(count: number) {
         if (typeof count !== "number" || count < 0) throw new Error("Count must be a positive number.");
-        const text = "\b".repeat(count) + " ".repeat(count) + "\b".repeat(count);
+        const text = "\x1b[" + count + "D" + " ".repeat(count) + "\x1b[" + count + "C";
         this.write(text, "", LogLevel.log);
         return this as Printer<Tags, Components>;
     };
@@ -603,12 +623,12 @@ export class BasePrinter<Tags extends string[] = any[], Components extends Recor
     };
 
     addDefaultStream() {
-        this.streams.set(defaultStream, defaultStream);
+        this.streams.set(this.defaultStream, this.defaultStream);
         return this as Printer<Tags, Components>;
     };
 
     removeDefaultStream() {
-        this.streams.delete(defaultStream);
+        this.streams.delete(this.defaultStream);
         return this as Printer<Tags, Components>;
     };
 
@@ -644,8 +664,206 @@ export class BasePrinter<Tags extends string[] = any[], Components extends Recor
             t: (p: Printer) => "color: " + p.options.currentTag.textColor
         };
 
-        for (const k in baseStyles) printer.addStyle(character + k, baseStyles[k]);
+        for (const k in baseStyles) this.addStyle(character + k, baseStyles[k]);
         return this as Printer<Tags, Components>;
+    };
+
+    get isReading() {
+        return !!this.alreadyReading;
+    };
+
+    async readline(question: string | (() => string) = "", {
+        history = [], allowClear = false, stdin = process.stdin, stdout = process.stdout
+    }: { history?: string[], allowClear?: boolean, stdin?: any, stdout?: any } = {}): Promise<string | null> {
+        await this.alreadyReading;
+        stdin.setRawMode(true);
+        stdin.resume();
+
+        if (typeof question === "function") question = question();
+
+        const info = this.readInfo = {
+            question,
+            cursor: 0,
+            text: ""
+        };
+
+        let lastText = "";
+        let historyIndex = history.length;
+
+        const lineLength = streamsLength.get(stdout) || 0;
+        if (lineLength !== 0) stdout.write(`\n${question}`);
+        else stdout.write(question);
+
+        let runFn: (buf: Buffer) => void;
+
+        this.alreadyReading = new Promise(r => {
+            stdin.on("data", run);
+
+            runFn = run;
+
+            function run(buf: Buffer) {
+                if (buf[0] == 0x7f) {
+                    // ctrl backspace
+                    if (info.cursor === 0) return;
+                    const index = info.text.lastIndexOf(" ", info.cursor - 1);
+                    if (index === -1) {
+                        const rest = info.text.slice(info.cursor);
+                        stdout.write(`\r${question}${rest}${" ".repeat(info.text.length - rest.length)}\x1b[${info.text.length}D`);
+                        info.text = rest;
+                        info.cursor = 0;
+                    } else {
+                        const text = info.text.slice(0, index) + info.text.slice(info.cursor);
+                        stdout.write(`\r${question}${text}${" ".repeat(info.text.length - text.length)}\x1b[${info.text.length - index}D`);
+                        info.text = text;
+                        info.cursor = index;
+                    }
+                    return;
+                }
+                let str = buf.toString();
+                switch (str) {
+                    case "\x03":
+                    case "\x04":
+                        r(null);
+                        break;
+                    case "\x1b[A": // up
+                    case "\x1b[B": { // down
+                        if (str === "\x1b[A") {
+                            if (historyIndex === 0) return;
+                            historyIndex--;
+                        } else {
+                            if (historyIndex === history.length) return;
+                            historyIndex++;
+                        }
+                        const current = historyIndex === history.length ? lastText : history[historyIndex];
+                        const erase = info.text.length - current.length;
+                        stdout.write(`\r${question}${current}${erase > 0 ? " ".repeat(erase) + "\b".repeat(erase) : ""}`);
+                        info.text = current;
+                        info.cursor = info.text.length;
+                        break;
+                    }
+                    case "\x1b[C": // right
+                        if (info.cursor >= info.text.length) return;
+                        info.cursor++;
+                        stdout.write(`\x1b[1C`);
+                        break;
+                    case "\x1b[D": // left
+                        if (info.cursor === 0) return;
+                        info.cursor--;
+                        stdout.write(`\x1b[1D`);
+                        break;
+                    case "\x1b[1~": // home
+                        info.cursor = 0;
+                        info.text = "";
+                        stdout.write(`\r${question}`);
+                        break;
+                    case "\x1b[2~": // insert
+                        break;
+                    case "\x1b[1;5D": // ctrl + left
+                        if (info.cursor === 0) return;
+                        const index = info.text.lastIndexOf(" ", info.cursor - 1);
+                        if (index === -1) {
+                            stdout.write(`\x1b[${info.cursor}D`);
+                            info.cursor = 0;
+                        } else {
+                            stdout.write(`\x1b[${info.cursor - index}D`);
+                            info.cursor = index;
+                        }
+                        break;
+                    case "\x1b[1;5C": // ctrl + right
+                        if (info.cursor >= info.text.length) return;
+                        const nextIndex = info.text.indexOf(" ", info.cursor + 1);
+                        if (nextIndex === -1) {
+                            stdout.write(`\x1b[${info.text.length - info.cursor}C`);
+                            info.cursor = info.text.length;
+                        } else {
+                            stdout.write(`\x1b[${nextIndex - info.cursor}C`);
+                            info.cursor = nextIndex;
+                        }
+                        break;
+                    case "\x1b[1;2D": // shift + left
+                        break;
+                    case "\x1b[1;2C": // shift + right
+                        break;
+                    case "\x1b[1;2A": // shift + up
+                        break;
+                    case "\x1b[1;2B": // shift + down
+                        break;
+                    case "\x1b[3~": { // delete
+                        if (info.cursor >= info.text.length) return;
+                        const rest = info.text.slice(info.cursor + 1);
+                        info.text = info.text.slice(0, info.cursor) + rest;
+                        stdout.write(`${rest} ${"\b".repeat(rest.length + 1)}`);
+                        if (historyIndex === history.length) lastText = info.text;
+                        break;
+                    }
+                    case "\x1b[3;5~": // ctrl + delete
+                        if (info.cursor >= info.text.length) return;
+                        const nextSpace = info.text.indexOf(" ", info.cursor + 1);
+                        if (nextSpace === -1) {
+                            const c = info.text.length - info.cursor;
+                            stdout.write(`${" ".repeat(c)}\x1b[${c}D`);
+                            info.text = info.text.slice(0, info.cursor);
+                            info.cursor = info.text.length;
+                        } else {
+                            const rest = info.text.slice(nextSpace + 1);
+                            const c = nextSpace - info.cursor + 1;
+                            stdout.write(`${rest}${" ".repeat(c)}\x1b[${c + rest.length}D`);
+                            info.text = info.text.slice(0, info.cursor) + rest;
+                        }
+                        break;
+                    case "\b": { // backspace
+                        if (info.cursor === 0) return;
+                        const rest = info.text.slice(info.cursor);
+                        info.text = info.text.slice(0, info.cursor - 1) + rest;
+                        info.cursor--;
+                        stdout.write(`\b${rest} ${"\b".repeat(rest.length + 1)}`);
+                        if (historyIndex === history.length) lastText = info.text;
+                        break;
+                    }
+                    case "\f": // CTRL + L
+                        if (allowClear) {
+                            stdout.write("\x1b[2J\x1b[0;0H");
+                            stdout.write(`${question}${info.text}${"\b".repeat(info.text.length - info.cursor)}`);
+                        }
+                        break;
+                    case "\n":
+                    case "\r":
+                        r(info.text);
+                        const lineLength = streamsLength.get(stdout) || 0;
+                        if (lineLength !== 0) {
+                            stdout.write(`\x1b[1A\x1b[${lineLength - info.cursor}C`); // move the cursor where it belongs
+                        } else stdout.write("\n");
+                        break;
+                    default:
+                        /*if (buf.length !== 1 || buf[0] < 32 || buf[0] > 126) {
+                            console.log(buf); for debug
+                            return;
+                        }*/
+                        if (str === "\t") str = "  ";
+                        if (info.cursor === info.text.length) {
+                            info.text += str;
+                            info.cursor += str.length;
+                            stdout.write(str);
+                        } else {
+                            const rest = info.text.slice(info.cursor);
+                            info.text = info.text.slice(0, info.cursor) + str + rest;
+                            info.cursor += str.length;
+                            stdout.write(`${str}${rest} ${"\b".repeat(rest.length + 1)}`);
+                        }
+                        if (historyIndex === history.length) lastText = info.text;
+                        break;
+                }
+            }
+        });
+        const response = await this.alreadyReading;
+        this.alreadyReading = null;
+        this.readInfo = null;
+
+        stdin.removeListener("data", runFn);
+        stdin.setRawMode(false);
+        stdin.pause();
+
+        return response as string | null;
     };
 }
 

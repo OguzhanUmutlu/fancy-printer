@@ -309,10 +309,17 @@ printer.cursorRight(5); // Moves 5 right
 printer.cursorDown(5); // Moves 5 down
 printer.cursorLeft(5); // Moves 5 left
 
-printer.clear(); // Clears the console (it's not included in the screenshot)
-```
+printer.clear(); // Clears the console
 
-![](https://raw.githubusercontent.com/OguzhanUmutlu/fancy-printer/main/screenshots/img_9.png)
+setInterval(() => {
+    printer.info("Trying to interrupt the input!");
+}, 500);
+
+// The interval above will be printed gracefully without messing up the input!
+const response = await printer.readline("> ", {allowClear: true}); // allowClear: will allow CTRL+L to clear the screen
+if (response === null) process.exit();
+console.log(response);
+```
 
 ## ✨ Fast Styling ✨
 

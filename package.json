@@ -1,6 +1,6 @@
 {
   "name": "fancy-printer",
-  "version": "2.0.6",
+  "version": "2.0.7",
   "description": "A fancy logger with a lot of customization!",
   "main": "./index.cjs.min.js",
   "module": "./index.esm.min.js",
@@ -31,7 +31,7 @@
   "author": "OguzhanUmutlu",
   "license": "MIT",
   "repository": {
-    "url": "https://github.com/OguzhanUmutlu/fancy-printer"
+    "url": "git+https://github.com/OguzhanUmutlu/fancy-printer.git"
   },
   "dependencies": {
     "ansi-styles": "^6.2.1",
