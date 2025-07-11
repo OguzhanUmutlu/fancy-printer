@@ -895,6 +895,7 @@ const brackets = printer.create().setOptions({
     date: {background: "", padding: 0},
     time: {background: "", padding: 0},
     namespace: {
+        padding: 0,
         color: "",
         background: "",
         after: "&t] | ",
