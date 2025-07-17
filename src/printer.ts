@@ -204,7 +204,7 @@ export class BasePrinter<Tags extends string[] = any[], Components extends Recor
 
     private parse() {
         let format = this.options.format;
-        if (typeof format === "function") format = this.format(this as any)[0];
+        if (typeof format === "function") format = format(this as any)[0];
         const symbol = this.options.componentSymbol;
         const parsed = this.parsed;
         parsed.length = 0;
@@ -431,15 +431,15 @@ export class BasePrinter<Tags extends string[] = any[], Components extends Recor
         let cleanResult = "";
         for (let i = 0; i < texts.length; i++) {
             const text = texts[i];
+            if (i > 0) {
+                result += this.options.sep;
+                cleanResult += this.options.sep;
+            }
             if (typeof text !== "string") {
                 const ins = this.inspect(text);
                 result += ins;
                 cleanResult += ins;
                 continue;
-            }
-            if (i > 0) {
-                result += this.options.sep;
-                cleanResult += this.options.sep;
             }
             result += text.replaceAll(/%[cfdioOsv]/g, r => {
                 if (i === texts.length - 1) {
