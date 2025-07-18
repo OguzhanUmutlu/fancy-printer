@@ -460,9 +460,10 @@ export class BasePrinter<Tags extends string[] = any[], Components extends Recor
 
     inspect(value: any) {
         switch (typeof value) {
+            case "string":
+                return JSON.stringify(value);
             case "number":
             case "boolean":
-            case "string":
             case "symbol":
             case "undefined":
             case "bigint":
