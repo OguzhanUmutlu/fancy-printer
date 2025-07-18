@@ -676,7 +676,7 @@ export class BasePrinter<Tags extends string[] = any[], Components extends Recor
         history = [], allowClear = false, stdin = process.stdin, stdout = process.stdout
     }: { history?: string[], allowClear?: boolean, stdin?: any, stdout?: any } = {}): Promise<string | null> {
         await this.alreadyReading;
-        stdin.setRawMode(true);
+        if (typeof stdin.setRawMode === "function") stdin.setRawMode(true);
         stdin.resume();
 
         if (typeof question === "function") question = question();
