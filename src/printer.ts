@@ -488,13 +488,24 @@ export class BasePrinter<Tags extends string[] = any[], Components extends Recor
                 if (rec.has(value)) return "[Circular]";
                 if (depth <= 0) return value.constructor ? `[${value.constructor.name}]` : `[Object]`;
                 rec.add(value);
-                if (Array.isArray(value)) return `[ ${value.map(v => this.inspect(v, rec, depth - 1)).join(", ")} ]`;
-                if (value instanceof Set) return `Set(${value.size}) { ${[...value].map(v => this.inspect(v, rec, depth - 1)).join(", ")} }`;
-                if (value instanceof Map) return `Map(${value.size}) { ${[...value.entries()].map(([k, v]) => `${this.inspect(k, rec, depth - 1)} => ${this.inspect(v, rec, depth - 1)}`).join(", ")} }`;
+                if (Array.isArray(value)) {
+                    if (value.length === 0) return "[]";
+                    return `[ ${value.map(v => this.inspect(v, rec, depth - 1)).join(", ")} ]`;
+                }
+                if (value instanceof Set) {
+                    if (value.size === 0) return "Set(0) {}";
+                    return `Set(${value.size}) { ${[...value].map(v => this.inspect(v, rec, depth - 1)).join(", ")} }`;
+                }
+                if (value instanceof Map) {
+                    if (value.size === 0) return "Map(0) {}";
+                    return `Map(${value.size}) { ${[...value.entries()].map(([k, v]) => `${this.inspect(k, rec, depth - 1)} => ${this.inspect(v, rec, depth - 1)}`).join(", ")} }`;
+                }
                 if (value instanceof Date) return `Date(${value.toISOString()})`;
                 if (value instanceof RegExp) return `RegExp(${value.toString()})`;
                 if (value instanceof Error) return value.stack;
-                return `{ ${Object.entries(value).map(([k, v]) => `${k}: ${this.inspect(v, rec, depth - 1)}`).join(", ")} }`;
+                const entries = Object.entries(value);
+                if (entries.length === 0) return "{}";
+                return `{ ${entries.map(([k, v]) => `${k}: ${this.inspect(v, rec, depth - 1)}`).join(", ")} }`;
         }
     };
 
