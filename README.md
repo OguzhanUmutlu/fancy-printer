@@ -64,10 +64,11 @@ npm install fancy-printer
 Or even with module scripts:
 
 ```html
-<script type="module">
-  import printer from "https://unpkg.com/fancy-printer/index.esm.min.js";
 
-  printer.log("test");
+<script type="module">
+    import printer from "https://unpkg.com/fancy-printer/index.esm.min.js";
+
+    printer.log("test");
 </script>
 ```
 
@@ -417,6 +418,7 @@ Base options:
 | allowTextSubstitutions | false                              | boolean       | Whether to allow substitutions in the text.         |
 | end                    | "\n"                               | string        | The ending character of the log.                    |
 | sep                    | " "                                | string        | The separator between given texts.                  |
+| objectDepth            | 2                                  | number        | The depth of the objects to be printed.             |
 
 Default components: `pass`, `fail`, `error`, `warn`, `info`, `debug`, `notice`, `log`, `ready`, `assert`.
 

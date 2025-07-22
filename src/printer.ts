@@ -58,7 +58,8 @@ const ExtraOptions = {
     format: <string | ((p: Printer) => string)>"$namespace$date $time $tag $text",
     end: "\n",
     sep: " ",
-    currentTag: null as TagOptions | null
+    currentTag: null as TagOptions | null,
+    objectDepth: 2
 };
 
 enum LogLevel {
@@ -469,7 +470,7 @@ export class BasePrinter<Tags extends string[] = any[], Components extends Recor
         return [result, cleanResult];
     };
 
-    inspect(value: any, rec = new WeakSet, depth = 2) {
+    inspect(value: any, rec = new WeakSet, depth = this.options.objectDepth) {
         if (nodeUtil) return nodeUtil.inspect(value, false, depth, false);
         switch (typeof value) {
             case "string":
