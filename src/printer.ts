@@ -36,6 +36,17 @@ try {
     req = () => null;
 }
 
+let nodeUtil = null;
+try {
+    if (typeof process !== "undefined" && process.versions?.node) {
+        // eslint-disable-next-line
+        // @ts-ignore
+        import(/* @vite-ignore */ JSON.parse('"util"')).then(util => nodeUtil = util).catch(() => void 0);
+    }
+// eslint-disable-next-line
+} catch {
+}
+
 export type Printer<Tags extends string[] = string[], Components extends Record<string, Component> = Record<string, Component>> =
     BasePrinter<Tags, Components> & { [k in Tags[number]]: (...args: any[]) => Printer<Tags, Components>; };
 
@@ -458,7 +469,8 @@ export class BasePrinter<Tags extends string[] = any[], Components extends Recor
         return [result, cleanResult];
     };
 
-    inspect(value: any) {
+    inspect(value: any, rec = new WeakSet, depth = 2) {
+        if (nodeUtil) return nodeUtil.inspect(value, false, depth, false);
         switch (typeof value) {
             case "string":
                 return JSON.stringify(value);
@@ -472,13 +484,16 @@ export class BasePrinter<Tags extends string[] = any[], Components extends Recor
                 return `[Function: ${value.name || "anonymous"}]`;
             case "object":
                 if (value === null) return "null";
-                if (Array.isArray(value)) return `[ ${value.map(v => this.inspect(v)).join(", ")} ]`;
-                if (value instanceof Set) return `Set(${value.size}) { ${[...value].map(v => this.inspect(v)).join(", ")} }`;
-                if (value instanceof Map) return `Map(${value.size}) { ${[...value.entries()].map(([k, v]) => `${this.inspect(k)} => ${this.inspect(v)}`).join(", ")} }`;
+                if (rec.has(value)) return "[Circular]";
+                if (depth <= 0) return value.constructor ? `[${value.constructor.name}]` : `[Object]`;
+                rec.add(value);
+                if (Array.isArray(value)) return `[ ${value.map(v => this.inspect(v, rec, depth - 1)).join(", ")} ]`;
+                if (value instanceof Set) return `Set(${value.size}) { ${[...value].map(v => this.inspect(v, rec, depth - 1)).join(", ")} }`;
+                if (value instanceof Map) return `Map(${value.size}) { ${[...value.entries()].map(([k, v]) => `${this.inspect(k, rec, depth - 1)} => ${this.inspect(v, rec, depth - 1)}`).join(", ")} }`;
                 if (value instanceof Date) return `Date(${value.toISOString()})`;
                 if (value instanceof RegExp) return `RegExp(${value.toString()})`;
                 if (value instanceof Error) return value.stack;
-                return `{ ${Object.entries(value).map(([k, v]) => `${k}: ${this.inspect(v)}`).join(", ")} }`;
+                return `{ ${Object.entries(value).map(([k, v]) => `${k}: ${this.inspect(v, rec, depth - 1)}`).join(", ")} }`;
         }
     };
 
