@@ -47,6 +47,8 @@ try {
 } catch {
 }
 
+let originalConsole = typeof console !== "undefined" ? console : null;
+
 export type Printer<Tags extends string[] = string[], Components extends Record<string, Component> = Record<string, Component>> =
     BasePrinter<Tags, Components> & { [k in Tags[number]]: (...args: any[]) => Printer<Tags, Components>; };
 
@@ -59,7 +61,9 @@ const ExtraOptions = {
     end: "\n",
     sep: " ",
     currentTag: null as TagOptions | null,
-    objectDepth: 2
+    objectDepth: 2,
+    defaultTag: "log",
+    defaultWarnTag: "warn"
 };
 
 enum LogLevel {
@@ -113,7 +117,7 @@ const streamsLength = new Map<any, number>;
 
 export class BasePrinter<Tags extends string[] = any[], Components extends Record<string, Component> = Record<string, Component>> {
     private defaultStream = (text: string, clean: string, level: LogLevel) => {
-        if (isWeb) console[level](text);
+        if (isWeb) originalConsole[this._tracing ? "trace" : level](text);
         else {
             const out = globalVar.process[level === LogLevel.error ? "stderr" : "stdout"];
             const lineLength = streamsLength.get(out) || 0;
@@ -144,6 +148,10 @@ export class BasePrinter<Tags extends string[] = any[], Components extends Recor
     private palette: Record<string, RGB> = {};
     private alreadyReading: Promise<string | null> = null;
     private readInfo: { question: string, cursor: number, text: string } | null = null;
+    private _counts: Record<number, number> = {};
+    private _times: Record<number, number> = {};
+    private _group = 0;
+    private _tracing = false;
 
 
     get inline() {
@@ -279,6 +287,9 @@ export class BasePrinter<Tags extends string[] = any[], Components extends Recor
         let cleanResult2 = "";
         for (let i = 0; i < lines.length; i++) {
             const text = lines[i];
+            const group = "  ".repeat(this._group);
+            result2 += group;
+            cleanResult2 += group;
             for (let i = 0; i < this.parsed.length; i++) {
                 const part = this.parsed[i];
                 if (typeof part === "string") {
@@ -384,13 +395,13 @@ export class BasePrinter<Tags extends string[] = any[], Components extends Recor
         return printer;
     };
 
-    print(...stuff: any[]) {
+    print(...stuff: unknown[]) {
         const [text, cleanText] = this.format(...stuff);
         this.write(text, cleanText, LogLevel.log);
         return this as Printer<Tags, Components>;
     };
 
-    println(...stuff: any[]) {
+    println(...stuff: unknown[]) {
         const [text, cleanText] = this.format(...stuff);
         this.write(text + "\n", cleanText + "\n", LogLevel.log);
         return this as Printer<Tags, Components>;
@@ -438,7 +449,7 @@ export class BasePrinter<Tags extends string[] = any[], Components extends Recor
         return result;
     };
 
-    format(...texts: any[]) {
+    format(...texts: unknown[]) {
         let result = "";
         let cleanResult = "";
         for (let i = 0; i < texts.length; i++) {
@@ -470,7 +481,7 @@ export class BasePrinter<Tags extends string[] = any[], Components extends Recor
         return [result, cleanResult];
     };
 
-    inspect(value: any, rec = new WeakSet, depth = this.options.objectDepth) {
+    inspect(value: unknown, rec = new WeakSet, depth = this.options.objectDepth) {
         if (nodeUtil) return nodeUtil.inspect(value, false, depth, false);
         switch (typeof value) {
             case "string":
@@ -704,8 +715,8 @@ export class BasePrinter<Tags extends string[] = any[], Components extends Recor
         history = [], allowClear = false, stdin = process.stdin, stdout = process.stdout
     }: { history?: string[], allowClear?: boolean, stdin?: any, stdout?: any } = {}): Promise<string | null> {
         await this.alreadyReading;
-        if (typeof stdin.setRawMode === "function") stdin.setRawMode(true);
-        stdin.resume();
+        if ("setRawMode" in stdin && typeof stdin.setRawMode === "function") stdin.setRawMode(true);
+        if ("resume" in stdin && typeof stdin.resume === "function") stdin.resume();
 
         if (typeof question === "function") question = question();
 
@@ -892,6 +903,169 @@ export class BasePrinter<Tags extends string[] = any[], Components extends Recor
         stdin.pause();
 
         return response as string | null;
+    };
+
+    count(label = "default") {
+        if (!this._counts[label]) this._counts[label] = 0;
+        this._counts[label]++;
+    };
+
+    countReset(label = "default") {
+        this._counts[label] = 0;
+    };
+
+    group(...labels: string[]) {
+        if (isWeb && originalConsole) originalConsole.group(...labels);
+        else this._group++;
+    };
+
+    groupCollapsed(...labels: string[]) {
+        if (isWeb && originalConsole) originalConsole.groupCollapsed(...labels);
+        else this._group++;
+    };
+
+    groupEnd() {
+        if (isWeb && originalConsole) originalConsole.groupEnd();
+        else this._group--;
+        if (this._group < 0) this._group = 0;
+    };
+
+    table(data: unknown, columns?: string[]) {
+        if (typeof data !== "object" || !data) throw new TypeError("Data must be an object or an array.");
+        let entries: [any, any][] = [];
+        let keyText = "(index)";
+        if (Array.isArray(data)) {
+            data.forEach((v, i) => entries.push([i, v]));
+        } else if (Symbol.iterator in data && typeof data[Symbol.iterator] === "function") {
+            for (const [k, v] of <Iterable<any>>data) entries.push([k, v]);
+            keyText = "(iteration index)";
+        } else entries = Object.entries(data);
+
+        if (columns && (typeof columns === "object" || !Array.isArray(columns))) throw new TypeError("Columns must be an array.");
+
+        const map: Record<string | symbol, any[]> = {};
+        const lens: Record<string | symbol, number> = {};
+
+        const keySymbol = Symbol("key");
+        const valueSymbol = Symbol("value");
+        valueSymbol.toString = () => "Values";
+        keySymbol.toString = () => keyText;
+
+        lens[keySymbol] = keyText.length;
+        map[keySymbol] = entries.map(i => {
+            const r = i[0].toString();
+            lens[keySymbol] = Math.max(lens[keySymbol], r.length);
+            return r;
+        });
+        const values = Array(entries.length).fill("");
+        let valueLen = "Values".length;
+        let anyValue = false;
+
+        const procKey = (k: string | symbol) => {
+            k = k.toString();
+            map[k] = Array(entries.length);
+            for (let i = 0; i < entries.length; i++) {
+                const entry = entries[i][1];
+                let val = "";
+                if (Array.isArray(entry)) {
+                    if (entry[k]) val = entry[k];
+                } else if (entry instanceof Map) {
+                    if (entry.has(k)) val = this.inspect(entry.get(k));
+                } else if (Symbol.iterator in entry) {
+                    for (const [key, value] of <Iterable<any>>entry) if (key === k) {
+                        val = this.inspect(value);
+                        break;
+                    }
+                } else if (typeof entry === "object" && entry !== null) {
+                    if (k in entry) val = this.inspect(entry[k]);
+                } else {
+                    values[i] = this.inspect(entry);
+                    valueLen = Math.max(valueLen, values[i].length);
+                    anyValue = true;
+                }
+                map[k][i] = val;
+                lens[k] = Math.max(lens[k] || 0, val.length);
+            }
+        };
+
+        if (columns) for (const k of columns) procKey(k);
+        else for (const [key, value] of entries) if (key && typeof key === "object") {
+            if (Array.isArray(key)) value.forEach((_: any, k: any) => procKey(k));
+            else if (Symbol.iterator in key && typeof key[Symbol.iterator] === "function") {
+                for (const k of <Iterable<any>>key) procKey(k);
+            } else for (const k in key) procKey(k);
+        }
+
+        if (anyValue) {
+            map[valueSymbol] = values;
+            lens[valueSymbol] = valueLen;
+        }
+
+        const allKeys = [keySymbol, ...Object.keys(map), ...(map[valueSymbol] ? ["Values"] : [])];
+
+        const tag = this.options.defaultTag;
+
+        const drawLine = (left: string, middle: string, right: string, fill: string) => {
+            this.tag(tag, allKeys.map((k, i) => `${i ? middle : left} ${fill.repeat(lens[k])} `) + right);
+        };
+
+        drawLine("┌", "┬", "┐", "─");
+        this.tag(tag, allKeys.map(k => `│ ${k.toString().padEnd(lens[k], " ")} `) + "│");
+        drawLine("├", "┼", "┤", "─");
+        for (let i = 0; i < entries.length; i++) {
+            this.tag(tag, allKeys.map(k => `│ ${map[k][i].toString().padEnd(lens[k], " ")} `) + "│");
+        }
+        drawLine("└", "┴", "┘", "─");
+        return this as Printer<Tags, Components>;
+    };
+
+    time(label = "default") {
+        if (this._times[label]) this.tag(this.options.defaultWarnTag, `Time '${label}' already exists.`);
+        this._times[label] = performance.now();
+        return this as Printer<Tags, Components>;
+    };
+
+    timeLog(label = "default", ...args: unknown[]) {
+        if (!this._times[label]) {
+            this.tag(this.options.defaultWarnTag, `Time '${label}' does not exist.`);
+            return;
+        }
+        const time = performance.now() - this._times[label];
+        this.tag(this.options.defaultTag, `${label}: ${time}ms`, ...args);
+        return this as Printer<Tags, Components>;
+    };
+
+    timeEnd(label = "default") {
+        if (!this._times[label]) {
+            this.tag(this.options.defaultWarnTag, `Time '${label}' does not exist.`);
+            return;
+        }
+        const time = performance.now() - this._times[label];
+        delete this._times[label];
+        this.tag(this.options.defaultTag, `${label}: ${time}ms`);
+        return this as Printer<Tags, Components>;
+    };
+
+    profile(profileName: string) {
+        originalConsole?.profile(profileName);
+        return this as Printer<Tags, Components>;
+    };
+
+    profileEnd(profileName: string) {
+        originalConsole?.profileEnd(profileName);
+        return this as Printer<Tags, Components>;
+    };
+
+    timeStamp(label: string) {
+        originalConsole?.timeStamp(label);
+        return this as Printer<Tags, Components>;
+    };
+
+    trace(...args: unknown[]) {
+        this._tracing = true;
+        this.tag(this.options.defaultTag, ...args);
+        this._tracing = true;
+        return this as Printer<Tags, Components>;
     };
 }
 
