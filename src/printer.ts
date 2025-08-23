@@ -115,10 +115,14 @@ type BasicPrinter = Printer<["pass", "fail", "error", "warn", "info", "debug", "
 
 const streamsLength = new Map<any, number>;
 
+const clearString = "\x1b[2J\x1b[0;0H";
+
 export class BasePrinter<Tags extends string[] = any[], Components extends Record<string, Component> = Record<string, Component>> {
     private defaultStream = (text: string, clean: string, level: LogLevel) => {
-        if (isWeb) originalConsole[this._tracing ? "trace" : level](text);
-        else {
+        if (isWeb) {
+            if (text === clearString) return originalConsole.clear();
+            originalConsole[this._tracing ? "trace" : level](text);
+        } else {
             const out = globalVar.process[level === LogLevel.error ? "stderr" : "stdout"];
             const lineLength = streamsLength.get(out) || 0;
             const info = this.readInfo;
@@ -656,8 +660,7 @@ export class BasePrinter<Tags extends string[] = any[], Components extends Recor
     };
 
     clear() {
-        const text = "\x1b[2J\x1b[0;0H";
-        this.write(text, "", LogLevel.log);
+        this.write(clearString, "", LogLevel.log);
         return this as Printer<Tags, Components>;
     };
 
