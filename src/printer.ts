@@ -447,9 +447,9 @@ export class BasePrinter<Tags extends string[] = any[], Components extends Recor
             if (css.font.style.italic) result += styles.italic.open;
             if (css.font.weight >= 600) result += styles.bold.open;
         }
-        if (css.background && css.background.color) result += this.color(css.background.color, true);
-        if (css.textDecoration && css.textDecoration.line.under) result += styles.underline.open;
-        if (css.textDecoration && css.textDecoration.line.through) result += styles.strikethrough.open;
+        if (css.background?.color) result += this.color(css.background.color, true);
+        if (css.textDecoration?.line?.under) result += styles.underline.open;
+        if (css.textDecoration?.line?.through) result += styles.strikethrough.open;
         return result;
     };
 
