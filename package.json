@@ -1,6 +1,6 @@
 {
   "name": "fancy-printer",
-  "version": "2.1.7",
+  "version": "2.1.8",
   "description": "A fancy logger with a lot of customization!",
   "main": "./index.cjs.min.js",
   "module": "./index.esm.min.js",
@@ -39,10 +39,10 @@
     "supports-color": "^10.0.0"
   },
   "devDependencies": {
-    "@types/node": "^24.0.7",
     "@rollup/plugin-commonjs": "^29.0.0",
     "@rollup/plugin-node-resolve": "^16.0.1",
     "@rollup/plugin-terser": "^0.4.4",
+    "@types/node": "^25.0.3",
     "rollup": "^4.44.0",
     "rollup-plugin-dts": "^6.2.1"
   }
