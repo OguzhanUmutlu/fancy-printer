@@ -8,22 +8,24 @@ export default [
     defineConfig({
         input: "dist/ts/printer.js",
         output: [
-            {file: "dist/index.esm.js", format: "esm"},
-            {file: "index.esm.min.js", format: "esm", plugins: [terser()]},
-            {file: "dist/index.cjs.js", format: "cjs"},
-            {file: "index.cjs.min.js", format: "cjs", plugins: [terser()]},
+            {file: "dist/index.esm.js", format: "esm", sourcemap: true},
+            {file: "dist/index.esm.min.js", format: "esm", plugins: [terser()], sourcemap: true},
+            {file: "dist/index.cjs.js", format: "cjs", exports: "named", sourcemap: true},
+            {file: "dist/index.cjs.min.js", format: "cjs", exports: "named", plugins: [terser()], sourcemap: true},
             {
                 file: "dist/index.umd.js",
                 format: "umd",
                 name: "Printer",
-                exports: "default"
+                exports: "named",
+                sourcemap: true
             },
             {
-                file: "index.umd.min.js",
+                file: "dist/index.umd.min.js",
                 format: "umd",
                 name: "Printer",
-                exports: "default",
-                plugins: [terser()]
+                exports: "named",
+                plugins: [terser()],
+                sourcemap: true
             }
         ],
         plugins: [
@@ -31,12 +33,11 @@ export default [
             commonjs()
         ]
     }),
+
+    // TypeScript definitions
     defineConfig({
         input: "dist/ts/printer.d.ts",
-        output: {
-            file: "index.d.ts",
-            format: "es"
-        },
+        output: {file: "dist/index.d.ts", format: "es"},
         plugins: [dts()]
     })
 ];
