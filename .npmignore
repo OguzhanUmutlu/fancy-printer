@@ -1,6 +1,6 @@
 .idea
 .vscode
-dist
+.github
 screenshots
 src
 tests
